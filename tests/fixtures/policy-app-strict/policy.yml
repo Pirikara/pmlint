@@ -1,0 +1,4 @@
+# Example central/org policy file, kept OUTSIDE the scanned repos and passed at
+# runtime via --config or PMLINT_CONFIG.
+extends:
+  - app-strict

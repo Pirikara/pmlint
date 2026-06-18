@@ -1,0 +1,30 @@
+name: pmlint
+description: Lint package-manager policy across JavaScript, Ruby, and Python repositories.
+author: pmlint
+branding:
+  icon: package
+  color: purple
+
+# This Action is intentionally a thin wrapper. All linting logic lives in the
+# CLI; the Action only installs and invokes it.
+inputs:
+  args:
+    description: Arguments passed to the pmlint CLI.
+    required: false
+    default: check .
+  version:
+    description: Version (npm dist-tag or semver) of pmlint to run.
+    required: false
+    default: latest
+  working-directory:
+    description: Directory to run pmlint in.
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Run pmlint
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npx --yes pmlint@${{ inputs.version }} ${{ inputs.args }}

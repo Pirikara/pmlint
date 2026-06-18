@@ -1,0 +1,49 @@
+{
+  "name": "pmlint",
+  "version": "0.1.0",
+  "description": "Lint package-manager policy across JavaScript, Ruby, and Python repositories.",
+  "type": "module",
+  "bin": {
+    "pmlint": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "packageManager": "pnpm@10.33.0",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "pmlint": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "lint",
+    "package-manager",
+    "dependencies",
+    "lockfile",
+    "dependabot",
+    "supply-chain"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "cac": "^6.7.14",
+    "fast-glob": "^3.3.2",
+    "jsonc-parser": "^3.3.1",
+    "semver": "^7.6.3",
+    "smol-toml": "^1.3.0",
+    "yaml": "^2.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@types/semver": "^7.5.8",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

@@ -1,0 +1,11 @@
+# pmlint dogfoods its own hardening rules (js/release-age-gate).
+#
+# minimumReleaseAge delays adoption of freshly published versions, which
+# mitigates a whole class of supply-chain attacks (a compromised maintainer
+# publishing a malicious patch). Value is in minutes; 1440 = 24h.
+minimumReleaseAge: 1440
+
+# pnpm 10 blocks dependency build scripts by default. Only esbuild (pulled in
+# by tsx and vitest) is allowed to run its postinstall to fetch its binary.
+onlyBuiltDependencies:
+  - esbuild

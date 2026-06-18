@@ -1,0 +1,4 @@
+source "https://rubygems.org"
+
+gem "example", git: "https://github.com/org/example.git", branch: "main"
+gem "rails", "~> 7.1.0"

@@ -1,0 +1,9 @@
+[tool.poetry]
+name = "good"
+version = "0.1.0"
+description = ""
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "2.32.3"
+flask = "^3.0"

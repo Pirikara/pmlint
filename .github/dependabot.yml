@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: npm # pnpm maps to the "npm" Dependabot ecosystem
+    directory: "/"
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

@@ -1,0 +1,10 @@
+# pmlint lints its own repository in CI (see .github/workflows/ci.yml).
+extends:
+  - recommended
+
+project:
+  type: cli
+
+# The test fixtures are deliberately non-compliant inputs for the test suite.
+ignore:
+  - "tests/fixtures/**"

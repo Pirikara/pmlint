@@ -1,0 +1,11 @@
+{
+  "name": "floaty",
+  "version": "1.0.0",
+  "packageManager": "npm@10.8.0",
+  "dependencies": {
+    "any-version": "*",
+    "tagged": "latest",
+    "unbounded": ">=1.0.0",
+    "from-git": "github:user/repo"
+  }
+}
