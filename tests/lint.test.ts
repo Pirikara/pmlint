@@ -88,6 +88,28 @@ describe("rule diagnostics (recommended preset)", () => {
     expect(paths).not.toContain("project-a/package.json"); // has its own lockfile
   });
 
+  function lockfilePaths(fixture: string): string[] {
+    return lintFixture(fixture)
+      .diagnostics.filter((d) => d.ruleId === "lockfile/required")
+      .map((d) => d.filePath ?? "");
+  }
+
+  it("exempts declared workspace members from lockfile/required (npm workspaces)", () => {
+    // Root declares `workspaces: [packages/*]` and has the single lockfile.
+    expect(lockfilePaths("monorepo-workspace")).toEqual([]);
+  });
+
+  it("exempts declared workspace members from lockfile/required (pnpm-workspace.yaml)", () => {
+    expect(lockfilePaths("monorepo-pnpm-workspace")).toEqual([]);
+  });
+
+  it("still flags a non-workspace child even when the parent has a lockfile", () => {
+    // Root has its OWN lockfile but no workspaces declaration; sub/ is independent.
+    const paths = lockfilePaths("monorepo-not-workspace");
+    expect(paths).toContain("sub/package.json");
+    expect(paths).not.toContain("package.json"); // root has its own lockfile
+  });
+
   it("warns on missing Dependabot config without failing", () => {
     const result = lintFixture("dependabot-missing");
     expect(ruleIds(result)).toContain("dependabot/config-present");
