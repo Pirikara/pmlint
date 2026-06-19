@@ -2,6 +2,7 @@
 import { cac } from "cac";
 import { runCheck, runExplain, type OutputFormat } from "./cli/check.js";
 import { runInit } from "./cli/init.js";
+import { runScan } from "./cli/scan.js";
 import { VERSION } from "./version.js";
 
 function main(argv: string[]): void {
@@ -39,6 +40,27 @@ function main(argv: string[]): void {
         target,
         config: options.config as string | undefined,
         noRepoConfig: options.repoConfig === false,
+      });
+      emit(outcome);
+    });
+
+  cli
+    .command("scan [...targets]", "Scan many repos (paths, URLs, owner/repo, or --org) and aggregate")
+    .option("--org <name>", "Enumerate a GitHub org's repos via the gh CLI")
+    .option("--limit <n>", "Max repos to take from --org", { default: 100 })
+    .option("--config <path>", "Path to a central pmlint policy (authoritative)")
+    .option("--no-repo-config", "Ignore each repo's own pmlint.yml (audit mode)")
+    .option("--format <format>", "Output format: stylish | json", { default: "stylish" })
+    .option("--keep-clones", "Keep cloned repositories instead of deleting them")
+    .action((targets: string[] | undefined, options: Record<string, unknown>) => {
+      const outcome = runScan({
+        targets: targets ?? [],
+        org: options.org as string | undefined,
+        limit: Number(options.limit) || 100,
+        config: options.config as string | undefined,
+        noRepoConfig: options.repoConfig === false,
+        format: options.format as OutputFormat,
+        keepClones: options.keepClones === true,
       });
       emit(outcome);
     });

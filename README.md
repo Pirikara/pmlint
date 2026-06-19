@@ -37,6 +37,7 @@ pmlint check . --format json    # machine-readable output
 pmlint check . --config pmlint.yml
 pmlint explain .                # show detected surfaces, no pass/fail
 pmlint init                     # write a starter pmlint.yml
+pmlint scan ./a ./b             # scan many repos, aggregate one report
 ```
 
 ### Exit codes
@@ -142,10 +143,28 @@ pmlint check ./some-repo --no-repo-config
 ```
 
 Config source precedence (highest first): `--config` → `PMLINT_CONFIG` →
-repo-local `pmlint.yml` (unless `--no-repo-config`) → built-in defaults. The
-static engine never accesses the network; repository enumeration and checkout
-are left to the orchestration layer (CI matrix, a script, or the GitHub/GitLab
-API), keeping the linter itself offline and deterministic.
+repo-local `pmlint.yml` (unless `--no-repo-config`) → built-in defaults.
+
+### `pmlint scan` — many repos at once
+
+`scan` runs the engine over multiple repositories and aggregates one report
+(compliant / non-compliant / failed counts, plus a rule rollup across repos):
+
+```bash
+# Local checkouts:
+pmlint scan ./service-a ./service-b --config ./org-policy.yml
+
+# Remote repos (shallow-cloned to a temp dir, then cleaned up):
+pmlint scan owner/repo https://github.com/owner/other --no-repo-config
+
+# A whole GitHub org (enumerated via the gh CLI), JSON for a dashboard:
+pmlint scan --org my-org --config ./org-policy.yml --format json
+```
+
+The static engine stays offline and deterministic; only the `scan` sources
+layer touches the network (it shells out to `git` / `gh` for cloning and org
+enumeration). `scan` exits non-zero if any repo is non-compliant or fails to
+scan.
 
 ### Presets
 
