@@ -13,10 +13,13 @@ const recommended: RuleSeverities = {
   "lockfile/required": "warn",
   "js/no-foreign-lockfiles": "error",
   "js/single-manager": "warn",
-  "deps/no-floating-version": "error",
-  "deps/no-dist-tag": "error",
-  "deps/no-unbounded-range": "error",
-  "deps/no-unpinned-vcs-source": "error",
+  // Version-pinning in the manifest is lower priority when a committed lockfile
+  // already pins resolved versions, so these are warnings here (app-strict
+  // raises them to errors for deployed apps).
+  "deps/no-floating-version": "warn",
+  "deps/no-dist-tag": "warn",
+  "deps/no-unbounded-range": "warn",
+  "deps/no-unpinned-vcs-source": "warn",
   "install/no-mutating-install-in-ci": "error",
   "install/no-update-command-in-ci": "error",
   "registry/no-plaintext-token": "error",
@@ -36,6 +39,11 @@ const recommended: RuleSeverities = {
 const appStrict: RuleSeverities = {
   ...recommended,
   "lockfile/required": "error",
+  // Deployed apps want exact/narrow direct deps regardless of the lockfile.
+  "deps/no-floating-version": "error",
+  "deps/no-dist-tag": "error",
+  "deps/no-unbounded-range": "error",
+  "deps/no-unpinned-vcs-source": "error",
   "js/single-manager": "error",
   "js/package-manager-pinned": "error",
   "js/release-age-gate": "warn",

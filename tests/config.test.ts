@@ -9,7 +9,9 @@ function fixturePath(name: string): string {
 describe("resolveConfig", () => {
   it("defaults to the recommended preset", () => {
     const config = resolveConfig({});
-    expect(config.rules["deps/no-floating-version"]).toBe("error");
+    // Version-pinning is a warning in recommended (lockfile already pins versions).
+    expect(config.rules["deps/no-floating-version"]).toBe("warn");
+    expect(config.rules["js/no-foreign-lockfiles"]).toBe("error");
     expect(config.rules["js/package-manager-pinned"]).toBe("off");
     expect(config.projectType).toBe("app");
   });
@@ -18,6 +20,9 @@ describe("resolveConfig", () => {
     const config = resolveConfig({ extends: "app-strict" });
     expect(config.rules["js/package-manager-pinned"]).toBe("error");
     expect(config.rules["lockfile/required"]).toBe("error");
+    // app-strict raises version-pinning back to errors.
+    expect(config.rules["deps/no-floating-version"]).toBe("error");
+    expect(config.rules["deps/no-unbounded-range"]).toBe("error");
     expect(config.rules["python/requirements-pinned"]).toBe("error");
     expect(config.options.requireExactPackageManagerVersion).toBe(true);
   });

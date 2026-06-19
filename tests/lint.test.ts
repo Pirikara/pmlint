@@ -196,9 +196,10 @@ describe("reporters", () => {
     const result = lintFixture("js-floating-bad");
     const report = JSON.parse(renderJson(result));
     expect(report.version).toBe("0.1.0");
-    expect(report.summary.errors).toBeGreaterThan(0);
+    expect(report.summary.errors + report.summary.warnings).toBeGreaterThan(0);
     expect(Array.isArray(report.diagnostics)).toBe(true);
     expect(report.diagnostics[0]).toHaveProperty("ruleId");
+    expect(report.diagnostics[0]).toHaveProperty("severity");
   });
 
   it("renders stylish output without color and without leaking ANSI", () => {
@@ -222,7 +223,13 @@ describe("CLI exit codes", () => {
   });
 
   it("exits 1 when errors are present", () => {
-    expect(runCheck({ target: fixturePath("js-floating-bad") }).exitCode).toBe(1);
+    // js-foreign-lockfile-bad has js/no-foreign-lockfiles (error) under recommended.
+    expect(runCheck({ target: fixturePath("js-foreign-lockfile-bad") }).exitCode).toBe(1);
+  });
+
+  it("exits 0 when a repo only has version-pinning warnings", () => {
+    // js-floating-bad is all warnings now (lockfile pins resolved versions).
+    expect(runCheck({ target: fixturePath("js-floating-bad") }).exitCode).toBe(0);
   });
 
   it("exits 0 for warnings by default", () => {

@@ -149,10 +149,12 @@ API), keeping the linter itself offline and deterministic.
 
 ### Presets
 
-- **`recommended`** — balanced defaults. Foreign lockfiles, floating/unbounded
-  versions, unpinned VCS sources, and mutating/updating CI installs are errors;
-  a missing lockfile or Dependabot config is a warning, and a missing Dependabot
-  `cooldown` is a warning.
+- **`recommended`** — balanced defaults. Foreign lockfiles and mutating/updating
+  CI installs are errors. Version-pinning rules (floating/unbounded versions,
+  dist-tags, unpinned VCS sources) are **warnings** here, since a committed
+  lockfile already pins the resolved versions; a missing lockfile, Dependabot
+  config, or `cooldown` is also a warning. `app-strict` raises the version-pinning
+  rules to errors.
 - **`app-strict`** — for deployed apps. Lockfiles required, pinned package
   manager, exact Python pins, registry hardening, Dependabot required.
 - **`library-recommended`** — for published libraries. Open ranges allowed and a
