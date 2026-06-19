@@ -18,6 +18,9 @@ export const dependabotEcosystemByManager: Record<PackageManager, string> = {
   composer: "composer",
   maven: "maven",
   gradle: "gradle",
+  cargo: "cargo",
+  nuget: "nuget",
+  pub: "pub",
 };
 
 /** Dependabot ecosystem aliases that should be treated as equivalent on read. */

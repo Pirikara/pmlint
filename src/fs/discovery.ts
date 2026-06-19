@@ -59,6 +59,19 @@ const FILE_PATTERNS = [
   "**/settings.gradle.kts",
   "**/gradle.lockfile",
   "**/gradle/dependency-locks/*.lockfile",
+  // Rust / Cargo
+  "**/Cargo.toml",
+  "**/Cargo.lock",
+  // .NET / NuGet
+  "**/*.csproj",
+  "**/*.fsproj",
+  "**/*.vbproj",
+  "**/packages.config",
+  "**/Directory.Packages.props",
+  "**/packages.lock.json",
+  // Dart / Flutter (pub)
+  "**/pubspec.yaml",
+  "**/pubspec.lock",
   // CI + Dependabot
   ".github/workflows/*.yml",
   ".github/workflows/*.yaml",

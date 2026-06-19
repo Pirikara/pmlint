@@ -199,6 +199,16 @@ export function classifyCommand(
   if (/^composer\s+require\b/.test(c)) return mk("composer", { mutating: true });
   if (/^composer\s+install\b/.test(c)) return mk("composer", { frozen: true });
 
+  // --- cargo ---
+  if (/^cargo\s+update\b/.test(c)) return mk("cargo", { update: true });
+
+  // --- dart / flutter pub ---
+  if (/^(dart|flutter)\s+pub\s+upgrade\b/.test(c)) return mk("pub", { update: true });
+  if (/^(dart|flutter)\s+pub\s+get\b/.test(c)) {
+    const frozen = /--enforce-lockfile\b/.test(c);
+    return mk("pub", { mutating: !frozen, frozen });
+  }
+
   return null;
 }
 

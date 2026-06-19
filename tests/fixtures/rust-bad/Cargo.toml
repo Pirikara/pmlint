@@ -1,0 +1,9 @@
+[package]
+name = "bad"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wildcard = "*"
+open = ">=1.0"
+forked = { git = "https://github.com/x/forked", branch = "main" }

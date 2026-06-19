@@ -22,10 +22,15 @@ without installing anything.
 | Go         | Go modules                        |
 | PHP        | Composer                          |
 | Java       | Maven, Gradle                     |
+| Rust       | Cargo                             |
+| .NET       | NuGet                             |
+| Dart       | pub (Dart / Flutter)              |
 
-> Go modules and Composer have first-class lockfiles (`go.sum` / `composer.lock`).
-> Java has no universal lockfile (Maven has none; Gradle locking is opt-in), so
-> `lockfile/required` does not apply there — version-pinning rules still do.
+> Most ecosystems have first-class lockfiles (`go.sum`, `composer.lock`,
+> `Cargo.lock`, `pubspec.lock`, …) so `lockfile/required` applies. Java and .NET
+> have no universal lockfile (Maven has none; Gradle and NuGet locking are
+> opt-in), so `lockfile/required` is skipped there — version-pinning rules still
+> apply across all ecosystems.
 
 ## Install
 

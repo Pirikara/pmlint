@@ -1,0 +1,9 @@
+name: bad
+
+dependencies:
+  anything: any
+  open: ">=1.0.0"
+  forked:
+    git:
+      url: https://github.com/x/forked
+      ref: main

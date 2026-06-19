@@ -1,0 +1,11 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = "1.0"
+anyhow = { version = "1.0", features = ["backtrace"] }
+
+[dev-dependencies]
+pretty_assertions = "=1.4.0"

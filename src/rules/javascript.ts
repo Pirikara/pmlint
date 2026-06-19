@@ -32,6 +32,9 @@ const EXPECTED_LOCKFILE: Record<PackageManager, string> = {
   composer: "composer.lock",
   maven: "pom.xml",
   gradle: "gradle.lockfile",
+  cargo: "Cargo.lock",
+  nuget: "packages.lock.json",
+  pub: "pubspec.lock",
 };
 
 const CONFIG_TO_MANAGER: Partial<Record<string, PackageManager>> = {

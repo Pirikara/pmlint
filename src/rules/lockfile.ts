@@ -9,11 +9,14 @@ const ECOSYSTEM_HINT: Record<PackageEcosystem, string> = {
   go: "Commit go.sum.",
   php: "Commit composer.lock.",
   java: "Enable dependency locking and commit the lockfile.",
+  rust: "Commit Cargo.lock.",
+  dotnet: "Enable NuGet lock files and commit packages.lock.json.",
+  dart: "Commit pubspec.lock.",
 };
 
 // Ecosystems without a universal lockfile concept are not required to have one.
-// (Maven has no standard lockfile; Gradle locking is opt-in.)
-const NO_LOCKFILE_REQUIRED = new Set<PackageEcosystem>(["java"]);
+// (Maven has none; Gradle and NuGet locking are opt-in.)
+const NO_LOCKFILE_REQUIRED = new Set<PackageEcosystem>(["java", "dotnet"]);
 
 export const lockfileRequired: Rule = {
   id: "lockfile/required",

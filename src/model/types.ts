@@ -6,7 +6,16 @@
  * normalized shapes.
  */
 
-export type PackageEcosystem = "javascript" | "ruby" | "python" | "go" | "php" | "java";
+export type PackageEcosystem =
+  | "javascript"
+  | "ruby"
+  | "python"
+  | "go"
+  | "php"
+  | "java"
+  | "rust"
+  | "dotnet"
+  | "dart";
 
 export type PackageManager =
   | "npm"
@@ -21,7 +30,10 @@ export type PackageManager =
   | "go"
   | "composer"
   | "maven"
-  | "gradle";
+  | "gradle"
+  | "cargo"
+  | "nuget"
+  | "pub";
 
 export type ManifestKind =
   | "package.json"
@@ -35,7 +47,12 @@ export type ManifestKind =
   | "composer.json"
   | "pom.xml"
   | "build.gradle"
-  | "build.gradle.kts";
+  | "build.gradle.kts"
+  | "Cargo.toml"
+  | "csproj"
+  | "packages.config"
+  | "Directory.Packages.props"
+  | "pubspec.yaml";
 
 export type LockfileKind =
   | "package-lock.json"
@@ -51,7 +68,10 @@ export type LockfileKind =
   | "pylock.toml"
   | "go.sum"
   | "composer.lock"
-  | "gradle.lockfile";
+  | "gradle.lockfile"
+  | "Cargo.lock"
+  | "packages.lock.json"
+  | "pubspec.lock";
 
 export type PackageManagerConfigKind =
   | ".npmrc"

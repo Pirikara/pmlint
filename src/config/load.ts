@@ -38,6 +38,9 @@ function defaultConfig(): ResolvedConfig {
       go: true,
       php: true,
       java: true,
+      rust: true,
+      dotnet: true,
+      dart: true,
     },
     ignore: [],
     failOnWarnings: false,
@@ -136,6 +139,9 @@ export function resolveConfig(raw: RawConfig, configPath = "<inline>"): Resolved
     "go",
     "php",
     "java",
+    "rust",
+    "dotnet",
+    "dart",
   ] as PackageEcosystem[]) {
     const enabled = raw.ecosystems?.[eco]?.enabled;
     if (typeof enabled === "boolean") {
