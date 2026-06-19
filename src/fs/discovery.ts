@@ -45,6 +45,20 @@ const FILE_PATTERNS = [
   "**/pylock.toml",
   "**/pip.conf",
   "**/pip.ini",
+  // Go
+  "**/go.mod",
+  "**/go.sum",
+  // PHP / Composer
+  "**/composer.json",
+  "**/composer.lock",
+  // Java (Maven / Gradle)
+  "**/pom.xml",
+  "**/build.gradle",
+  "**/build.gradle.kts",
+  "**/settings.gradle",
+  "**/settings.gradle.kts",
+  "**/gradle.lockfile",
+  "**/gradle/dependency-locks/*.lockfile",
   // CI + Dependabot
   ".github/workflows/*.yml",
   ".github/workflows/*.yaml",

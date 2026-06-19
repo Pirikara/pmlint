@@ -1,0 +1,8 @@
+{
+  "name": "acme/bad",
+  "require": {
+    "vendor/anything": "*",
+    "vendor/branch": "dev-main",
+    "vendor/open": ">=1.0"
+  }
+}

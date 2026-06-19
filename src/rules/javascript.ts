@@ -28,6 +28,10 @@ const EXPECTED_LOCKFILE: Record<PackageManager, string> = {
   "pip-tools": "requirements.txt",
   poetry: "poetry.lock",
   uv: "uv.lock",
+  go: "go.sum",
+  composer: "composer.lock",
+  maven: "pom.xml",
+  gradle: "gradle.lockfile",
 };
 
 const CONFIG_TO_MANAGER: Partial<Record<string, PackageManager>> = {

@@ -6,7 +6,14 @@ const ECOSYSTEM_HINT: Record<PackageEcosystem, string> = {
   javascript: "Commit a lockfile (e.g. pnpm-lock.yaml / package-lock.json).",
   ruby: "Commit Gemfile.lock.",
   python: "Commit a lockfile (poetry.lock / uv.lock) or a fully pinned requirements.txt.",
+  go: "Commit go.sum.",
+  php: "Commit composer.lock.",
+  java: "Enable dependency locking and commit the lockfile.",
 };
+
+// Ecosystems without a universal lockfile concept are not required to have one.
+// (Maven has no standard lockfile; Gradle locking is opt-in.)
+const NO_LOCKFILE_REQUIRED = new Set<PackageEcosystem>(["java"]);
 
 export const lockfileRequired: Rule = {
   id: "lockfile/required",
@@ -22,6 +29,9 @@ export const lockfileRequired: Rule = {
 
     const findings = [];
     for (const surface of surfaces) {
+      if (NO_LOCKFILE_REQUIRED.has(surface.ecosystem)) {
+        continue;
+      }
       if (surface.lockfiles.length > 0) {
         continue;
       }

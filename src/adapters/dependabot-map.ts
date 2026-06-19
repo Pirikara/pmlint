@@ -14,6 +14,10 @@ export const dependabotEcosystemByManager: Record<PackageManager, string> = {
   "pip-tools": "pip",
   poetry: "pip",
   uv: "uv",
+  go: "gomod",
+  composer: "composer",
+  maven: "maven",
+  gradle: "gradle",
 };
 
 /** Dependabot ecosystem aliases that should be treated as equivalent on read. */

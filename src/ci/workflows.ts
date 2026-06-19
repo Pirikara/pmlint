@@ -188,6 +188,17 @@ export function classifyCommand(
     return mk("uv", { mutating: !frozen, frozen });
   }
 
+  // --- go modules ---
+  if (/^go\s+get\b.*-u\b/.test(c)) return mk("go", { update: true });
+  if (/^go\s+get\b/.test(c)) return mk("go", { mutating: true });
+  if (/^go\s+mod\s+tidy\b/.test(c)) return mk("go", { mutating: true });
+  if (/^go\s+mod\s+download\b/.test(c)) return mk("go", { frozen: true });
+
+  // --- composer ---
+  if (/^composer\s+update\b/.test(c)) return mk("composer", { update: true });
+  if (/^composer\s+require\b/.test(c)) return mk("composer", { mutating: true });
+  if (/^composer\s+install\b/.test(c)) return mk("composer", { frozen: true });
+
   return null;
 }
 

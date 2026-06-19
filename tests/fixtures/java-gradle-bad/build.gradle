@@ -1,0 +1,9 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:32.1.+'
+    implementation 'org.apache.commons:commons-lang3:latest.release'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+}

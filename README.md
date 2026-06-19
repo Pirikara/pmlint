@@ -19,6 +19,13 @@ without installing anything.
 | JavaScript | npm, pnpm, Yarn, Bun              |
 | Ruby       | Bundler                           |
 | Python     | pip, pip-tools, Poetry, uv        |
+| Go         | Go modules                        |
+| PHP        | Composer                          |
+| Java       | Maven, Gradle                     |
+
+> Go modules and Composer have first-class lockfiles (`go.sum` / `composer.lock`).
+> Java has no universal lockfile (Maven has none; Gradle locking is opt-in), so
+> `lockfile/required` does not apply there — version-pinning rules still do.
 
 ## Install
 

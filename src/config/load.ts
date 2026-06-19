@@ -31,7 +31,14 @@ export function discoverConfigPath(root: string): string | undefined {
 function defaultConfig(): ResolvedConfig {
   return {
     projectType: "app",
-    ecosystems: { javascript: true, ruby: true, python: true },
+    ecosystems: {
+      javascript: true,
+      ruby: true,
+      python: true,
+      go: true,
+      php: true,
+      java: true,
+    },
     ignore: [],
     failOnWarnings: false,
     rules: presetRules(DEFAULT_PRESET),
@@ -122,7 +129,14 @@ export function resolveConfig(raw: RawConfig, configPath = "<inline>"): Resolved
   }
 
   // 3. ecosystem enable/disable.
-  for (const eco of ["javascript", "ruby", "python"] as PackageEcosystem[]) {
+  for (const eco of [
+    "javascript",
+    "ruby",
+    "python",
+    "go",
+    "php",
+    "java",
+  ] as PackageEcosystem[]) {
     const enabled = raw.ecosystems?.[eco]?.enabled;
     if (typeof enabled === "boolean") {
       config.ecosystems[eco] = enabled;

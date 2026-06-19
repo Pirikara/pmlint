@@ -1,4 +1,7 @@
+import { goAdapter } from "../adapters/go.js";
+import { javaAdapter } from "../adapters/java.js";
 import { javascriptAdapter } from "../adapters/javascript.js";
+import { phpAdapter } from "../adapters/php.js";
 import { pythonAdapter } from "../adapters/python.js";
 import { rubyAdapter } from "../adapters/ruby.js";
 import type { AddDiagnostic, EcosystemAdapter } from "../adapters/types.js";
@@ -10,7 +13,14 @@ import type { PackageSurface, RepositoryState, RuleDiagnostic } from "../model/t
 import { ALL_RULES } from "../rules/index.js";
 import type { RuleContext } from "../rules/types.js";
 
-const ADAPTERS: EcosystemAdapter[] = [javascriptAdapter, rubyAdapter, pythonAdapter];
+const ADAPTERS: EcosystemAdapter[] = [
+  javascriptAdapter,
+  rubyAdapter,
+  pythonAdapter,
+  goAdapter,
+  phpAdapter,
+  javaAdapter,
+];
 
 export type LintResult = {
   root: string;
