@@ -4,8 +4,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { applyFixes, planFixes } from "../src/fix/apply.js";
-import { loadConfig } from "../src/config/load.js";
+import { loadConfig, resolveConfig } from "../src/config/load.js";
 import { lint } from "../src/core/engine.js";
+import { parse as parseYaml } from "yaml";
 
 const tempDirs: string[] = [];
 
@@ -69,6 +70,28 @@ describe("autofix", () => {
     expect(forced.applied.some((f) => f.kind === "delete")).toBe(true);
     expect(existsSync(path.join(root, "package-lock.json"))).toBe(false);
     expect(ruleIds(root)).not.toContain("js/no-foreign-lockfiles");
+  });
+
+  it("adds a cooldown to an existing Dependabot config (structure-preserving)", () => {
+    const root = scratchCopy("dependabot-cooldown-missing");
+    const config = resolveConfig({ extends: "app-strict" });
+
+    const before = lint(root, config);
+    expect(before.diagnostics.map((d) => d.ruleId)).toContain("dependabot/release-cooldown");
+
+    const report = applyFixes(root, before.diagnostics);
+    expect(report.applied.some((f) => f.kind === "rewrite")).toBe(true);
+
+    const yml = readFileSync(path.join(root, ".github/dependabot.yml"), "utf8");
+    const parsed = parseYaml(yml) as { updates: Array<{ cooldown?: { "default-days"?: number } }> };
+    expect(parsed.updates[0]?.cooldown?.["default-days"]).toBe(7);
+    // Existing keys are preserved by the structure-aware edit.
+    expect(yml).toContain("package-ecosystem: npm");
+    expect(yml).toContain("interval: weekly");
+
+    expect(lint(root, config).diagnostics.map((d) => d.ruleId)).not.toContain(
+      "dependabot/release-cooldown",
+    );
   });
 
   it("dry-run reports a plan without touching disk", () => {

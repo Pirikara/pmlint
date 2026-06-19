@@ -158,16 +158,28 @@ export type CiState = {
   commands: CiInstallCommand[];
 };
 
+/** Dependabot per-entry `cooldown` block (delays updates after a release). */
+export type DependabotCooldown = {
+  defaultDays?: number;
+  semverMajorDays?: number;
+  semverMinorDays?: number;
+  semverPatchDays?: number;
+};
+
 export type DependabotUpdateEntry = {
   /** The `package-ecosystem` value as written. */
   packageEcosystem: string;
   /** Normalized directories this entry covers (repo-relative, leading "/" stripped, "." for root). */
   directories: string[];
+  /** Parsed `cooldown` block, when present. */
+  cooldown?: DependabotCooldown;
 };
 
 export type DependabotState = {
   /** Path of the active dependabot config, if present. */
   configPath?: string;
+  /** Raw text of the active dependabot config (for structure-preserving fixes). */
+  raw?: string;
   /** True when both .yml and .yaml variants exist. */
   duplicate: boolean;
   /** Parsed update entries. Undefined when no config or unparseable. */
@@ -205,6 +217,13 @@ export type FileFix =
     }
   | {
       kind: "create";
+      filePath: string;
+      content: string;
+      description: string;
+      destructive?: false;
+    }
+  | {
+      kind: "rewrite";
       filePath: string;
       content: string;
       description: string;

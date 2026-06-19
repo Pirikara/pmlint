@@ -1,6 +1,10 @@
 import type { Discovery } from "../fs/discovery.js";
 import { parseYamlSafe } from "../fs/parse.js";
-import type { DependabotState, DependabotUpdateEntry } from "../model/types.js";
+import type {
+  DependabotCooldown,
+  DependabotState,
+  DependabotUpdateEntry,
+} from "../model/types.js";
 import type { AddDiagnostic } from "../adapters/types.js";
 
 const YML = ".github/dependabot.yml";
@@ -35,7 +39,7 @@ export function parseDependabot(input: Discovery, addDiag: AddDiagnostic): Depen
 
   const raw = parsed.value;
   if (!raw || typeof raw !== "object" || !Array.isArray(raw.updates)) {
-    return { configPath, duplicate, updates: [] };
+    return { configPath, raw: text, duplicate, updates: [] };
   }
 
   const updates: DependabotUpdateEntry[] = [];
@@ -47,10 +51,11 @@ export function parseDependabot(input: Discovery, addDiag: AddDiagnostic): Depen
     const packageEcosystem =
       typeof e["package-ecosystem"] === "string" ? (e["package-ecosystem"] as string) : "";
     const directories = normalizeDirectories(e.directory, e.directories);
-    updates.push({ packageEcosystem, directories });
+    const cooldown = parseCooldown(e.cooldown);
+    updates.push(cooldown ? { packageEcosystem, directories, cooldown } : { packageEcosystem, directories });
   }
 
-  return { configPath, duplicate, updates };
+  return { configPath, raw: text, duplicate, updates };
 }
 
 function normalizeDirectories(directory: unknown, directories: unknown): string[] {
@@ -66,6 +71,21 @@ function normalizeDirectories(directory: unknown, directories: unknown): string[
     }
   }
   return [...out];
+}
+
+function parseCooldown(value: unknown): DependabotCooldown | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const c = value as Record<string, unknown>;
+  const num = (v: unknown): number | undefined => (typeof v === "number" ? v : undefined);
+  const cooldown: DependabotCooldown = {
+    defaultDays: num(c["default-days"]),
+    semverMajorDays: num(c["semver-major-days"]),
+    semverMinorDays: num(c["semver-minor-days"]),
+    semverPatchDays: num(c["semver-patch-days"]),
+  };
+  return cooldown;
 }
 
 /** Normalize a Dependabot `directory` value to a repo-relative path. */

@@ -17,6 +17,8 @@ export type ResolvedConfig = {
     requireExactPackageManagerVersion: boolean;
     /** Minimum acceptable release-age gate, in seconds (`js/release-age-gate`). */
     minReleaseAgeSeconds: number;
+    /** Minimum required Dependabot cooldown `default-days` (`dependabot/release-cooldown`). */
+    minCooldownDays: number;
   };
 };
 
@@ -37,6 +39,8 @@ export type RawConfig = {
     required?: boolean;
     requireCoverageForAllManifests?: boolean;
     requireGithubActionsUpdates?: boolean;
+    /** Minimum required cooldown `default-days` (default 7). */
+    minCooldownDays?: number;
   };
   registry?: { forbidPlaintextTokens?: boolean; forbidInsecureRegistry?: boolean };
   rules?: Record<string, Severity>;
