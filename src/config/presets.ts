@@ -25,6 +25,8 @@ const recommended: RuleSeverities = {
   "dependabot/no-duplicate-config": "warn",
   "dependabot/directories-cover-manifests": "warn",
   "dependabot/ecosystem-matches-manager": "warn",
+  // On by default: only fires when a dependabot.yml exists, so low-noise.
+  "dependabot/release-cooldown": "warn",
 };
 
 // app-strict layers stricter severities on top of recommended. It relies on the
@@ -45,8 +47,7 @@ const appStrict: RuleSeverities = {
   "dependabot/github-actions-updates": "warn",
   // Complements deps/* by also flagging bounded ranges that are not exact pins.
   "python/requirements-pinned": "error",
-  // Require a Dependabot cooldown so freshly published versions aren't adopted instantly.
-  "dependabot/release-cooldown": "warn",
+  // (dependabot/release-cooldown is inherited as warn from recommended.)
 };
 
 const libraryRecommended: RuleSeverities = {

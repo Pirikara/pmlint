@@ -159,9 +159,18 @@ describe("config-driven behavior", () => {
     expect(ids).not.toContain("dependabot/release-cooldown");
   });
 
-  it("does not check cooldown under recommended (off by default)", () => {
+  it("checks cooldown under recommended by default", () => {
     const root = fixturePath("dependabot-cooldown-missing");
     const ids = lint(root, resolveConfig({})).diagnostics.map((d) => d.ruleId);
+    expect(ids).toContain("dependabot/release-cooldown");
+  });
+
+  it("can disable cooldown via an explicit override", () => {
+    const root = fixturePath("dependabot-cooldown-missing");
+    const ids = lint(
+      root,
+      resolveConfig({ rules: { "dependabot/release-cooldown": "off" } }),
+    ).diagnostics.map((d) => d.ruleId);
     expect(ids).not.toContain("dependabot/release-cooldown");
   });
 

@@ -149,7 +149,8 @@ API), keeping the linter itself offline and deterministic.
 
 - **`recommended`** — balanced defaults. Foreign lockfiles, floating/unbounded
   versions, unpinned VCS sources, and mutating/updating CI installs are errors;
-  a missing lockfile or Dependabot config is a warning.
+  a missing lockfile or Dependabot config is a warning, and a missing Dependabot
+  `cooldown` is a warning.
 - **`app-strict`** — for deployed apps. Lockfiles required, pinned package
   manager, exact Python pins, registry hardening, Dependabot required.
 - **`library-recommended`** — for published libraries. Open ranges allowed and a
