@@ -32,7 +32,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "cac": "^6.7.14",
+    "cac": "^7.0.0",
     "fast-glob": "^3.3.2",
     "jsonc-parser": "^3.3.1",
     "semver": "^7.6.3",
@@ -44,6 +44,6 @@
     "@types/semver": "^7.5.8",
     "tsx": "^4.19.1",
     "typescript": "^6.0.3",
-    "vitest": "^2.1.1"
+    "vitest": "^3.2.6"
   }
 }
