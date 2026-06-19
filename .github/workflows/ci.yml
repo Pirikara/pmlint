@@ -8,8 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      # pnpm must be set up before setup-node so `cache: pnpm` can resolve it.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
