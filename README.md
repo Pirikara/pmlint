@@ -59,6 +59,8 @@ Set `ci.failOnWarnings: true` to fail on warnings too.
   `pnpm install` without `--frozen-lockfile`, `uv sync` without `--locked`, …).
 - Update commands running in CI that belong to Dependabot/Renovate.
 - Missing Dependabot config, uncovered package roots, and ecosystem mismatches.
+- Missing/short Dependabot `cooldown` (delays adopting freshly published versions;
+  minimum `default-days` is configurable via `dependabot.minCooldownDays`, default 7).
 - Plaintext registry tokens committed to the repo, and insecure registries.
 
 ## Autofix
@@ -76,7 +78,10 @@ Auto-fixable today:
 
 - Rewrite mutating CI installs to frozen ones (`npm install` → `npm ci`, add
   `--frozen-lockfile` / `--immutable` / `--locked`).
-- Generate `.github/dependabot.yml` covering detected roots and GitHub Actions.
+- Generate `.github/dependabot.yml` covering detected roots and GitHub Actions
+  (including a `cooldown` block).
+- Add a `cooldown` (`default-days`) to existing Dependabot entries that lack one,
+  preserving the rest of the YAML.
 - Switch a registry URL from `http://` to `https://`.
 - Delete a foreign lockfile — **destructive**, requires `--fix-destructive`.
 

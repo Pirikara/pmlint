@@ -91,6 +91,19 @@ describe("rule diagnostics (recommended preset)", () => {
     );
   });
 
+  it("explains the yarn->npm Dependabot ecosystem mapping instead of a contradictory message", () => {
+    const result = lintFixture("dependabot-yarn-uncovered");
+    const diag = result.diagnostics.find(
+      (d) => d.ruleId === "dependabot/directories-cover-manifests",
+    );
+    expect(diag).toBeDefined();
+    expect(diag?.message).toContain("detected yarn");
+    // The remediation must point at "npm" (not "yarn") and say why.
+    expect(diag?.suggestion).toContain('package-ecosystem "npm"');
+    expect(diag?.suggestion).toContain("npm, Yarn, and pnpm");
+    expect(diag?.suggestion).not.toContain('package-ecosystem "yarn"');
+  });
+
   it("flags a committed plaintext token without leaking its value", () => {
     const result = lintFixture("registry-token-bad");
     expect(ruleIds(result)).toContain("registry/no-plaintext-token");
@@ -110,6 +123,38 @@ describe("config-driven behavior", () => {
     const root = fixturePath("python-bounded-range");
     const result = lint(root, resolveConfig({}));
     expect(ruleIds(result)).not.toContain("python/requirements-pinned");
+  });
+
+  it("flags a Dependabot entry without a release cooldown (app-strict)", () => {
+    const root = fixturePath("dependabot-cooldown-missing");
+    const ids = lint(root, resolveConfig({ extends: "app-strict" })).diagnostics.map(
+      (d) => d.ruleId,
+    );
+    expect(ids).toContain("dependabot/release-cooldown");
+  });
+
+  it("accepts a cooldown that meets the default 7-day minimum", () => {
+    const root = fixturePath("dependabot-cooldown-good");
+    const ids = lint(root, resolveConfig({ extends: "app-strict" })).diagnostics.map(
+      (d) => d.ruleId,
+    );
+    expect(ids).not.toContain("dependabot/release-cooldown");
+  });
+
+  it("does not check cooldown under recommended (off by default)", () => {
+    const root = fixturePath("dependabot-cooldown-missing");
+    const ids = lint(root, resolveConfig({})).diagnostics.map((d) => d.ruleId);
+    expect(ids).not.toContain("dependabot/release-cooldown");
+  });
+
+  it("flags a cooldown below a custom minCooldownDays threshold", () => {
+    const root = fixturePath("dependabot-cooldown-good"); // default-days: 7
+    const result = lint(
+      root,
+      resolveConfig({ extends: "app-strict", dependabot: { minCooldownDays: 14 } }),
+    );
+    const cooldown = result.diagnostics.find((d) => d.ruleId === "dependabot/release-cooldown");
+    expect(cooldown?.message).toContain("below the required 14");
   });
 
   it("can disable an ecosystem", () => {

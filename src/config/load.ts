@@ -38,6 +38,7 @@ function defaultConfig(): ResolvedConfig {
     options: {
       requireExactPackageManagerVersion: false,
       minReleaseAgeSeconds: 0,
+      minCooldownDays: 7,
     },
   };
 }
@@ -157,6 +158,9 @@ export function resolveConfig(raw: RawConfig, configPath = "<inline>"): Resolved
   }
   if (typeof raw.minReleaseAgeSeconds === "number") {
     config.options.minReleaseAgeSeconds = raw.minReleaseAgeSeconds;
+  }
+  if (typeof raw.dependabot?.minCooldownDays === "number") {
+    config.options.minCooldownDays = raw.dependabot.minCooldownDays;
   }
 
   return config;

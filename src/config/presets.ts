@@ -45,6 +45,8 @@ const appStrict: RuleSeverities = {
   "dependabot/github-actions-updates": "warn",
   // Complements deps/* by also flagging bounded ranges that are not exact pins.
   "python/requirements-pinned": "error",
+  // Require a Dependabot cooldown so freshly published versions aren't adopted instantly.
+  "dependabot/release-cooldown": "warn",
 };
 
 const libraryRecommended: RuleSeverities = {

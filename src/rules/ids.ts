@@ -25,6 +25,7 @@ export const RULE_IDS = [
   "dependabot/directories-cover-manifests",
   "dependabot/ecosystem-matches-manager",
   "dependabot/github-actions-updates",
+  "dependabot/release-cooldown",
   // Ruby-specific (off by default; generic deps rules cover the common cases)
   "ruby/gemfile-lock-required",
   "ruby/frozen-install-in-ci",

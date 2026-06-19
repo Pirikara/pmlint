@@ -63,6 +63,13 @@ export function applyFixes(
       mkdirSync(path.dirname(abs), { recursive: true });
       writeFileSync(abs, fix.content, "utf8");
       applied.push(fix);
+    } else if (fix.kind === "rewrite") {
+      const abs = path.join(root, fix.filePath);
+      if (!existsSync(abs)) {
+        continue; // rewrite only applies to an existing file
+      }
+      writeFileSync(abs, fix.content, "utf8");
+      applied.push(fix);
     } else {
       const list = lineEditsByFile.get(fix.filePath) ?? [];
       list.push({ line: fix.line, find: fix.find, replace: fix.replace });
@@ -111,7 +118,8 @@ export function planFixes(
         lines.push(`       + ${fix.replace}`);
         break;
       case "create":
-        lines.push(`create ${fix.filePath}`);
+      case "rewrite":
+        lines.push(`${fix.kind === "create" ? "create" : "rewrite"} ${fix.filePath}`);
         for (const contentLine of fix.content.replace(/\n$/, "").split("\n")) {
           lines.push(`       | ${contentLine}`);
         }
@@ -135,6 +143,8 @@ function fixKey(fix: FileFix): string {
       return `replace:${fix.filePath}:${fix.line}:${fix.find}:${fix.replace}`;
     case "create":
       return `create:${fix.filePath}`;
+    case "rewrite":
+      return `rewrite:${fix.filePath}`;
     case "delete":
       return `delete:${fix.filePath}`;
   }
