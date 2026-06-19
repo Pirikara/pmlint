@@ -91,6 +91,24 @@ describe("rule diagnostics (recommended preset)", () => {
     );
   });
 
+  it("does not flag ecosystem mismatch when one root hosts multiple ecosystems", () => {
+    // Gemfile + package.json/yarn.lock both at root, covered by bundler + npm entries.
+    const result = lintFixture("dependabot-multi-ecosystem");
+    expect(ruleIds(result)).not.toContain("dependabot/ecosystem-matches-manager");
+    expect(ruleIds(result)).not.toContain("dependabot/directories-cover-manifests");
+  });
+
+  it("still flags a genuinely wrong ecosystem", () => {
+    // An npm project with only a `bundler` Dependabot entry.
+    const result = lintFixture("dependabot-wrong-ecosystem");
+    const diag = result.diagnostics.find(
+      (d) => d.ruleId === "dependabot/ecosystem-matches-manager",
+    );
+    expect(diag).toBeDefined();
+    expect(diag?.message).toContain('"bundler"');
+    expect(diag?.message).toContain("npm");
+  });
+
   it("explains the yarn->npm Dependabot ecosystem mapping instead of a contradictory message", () => {
     const result = lintFixture("dependabot-yarn-uncovered");
     const diag = result.diagnostics.find(
