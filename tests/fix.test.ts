@@ -94,6 +94,33 @@ describe("autofix", () => {
     );
   });
 
+  it("appends a missing ecosystem entry to an existing Dependabot config", () => {
+    // dependabot.yml has only a github-actions entry; the yarn (npm) root is uncovered.
+    const root = scratchCopy("dependabot-yarn-uncovered");
+    const config = resolveConfig({});
+
+    const before = lint(root, config);
+    const ids = before.diagnostics.map((d) => d.ruleId);
+    expect(ids).toContain("dependabot/directories-cover-manifests");
+
+    const report = applyFixes(root, before.diagnostics);
+    // Coverage + cooldown both target one file; they collapse to a single rewrite.
+    expect(report.applied.filter((f) => f.kind === "rewrite")).toHaveLength(1);
+
+    const parsed = parseYaml(readFileSync(path.join(root, ".github/dependabot.yml"), "utf8")) as {
+      updates: Array<{ "package-ecosystem": string; cooldown?: { "default-days"?: number } }>;
+    };
+    const ecos = parsed.updates.map((u) => u["package-ecosystem"]);
+    expect(ecos).toContain("npm"); // appended
+    expect(ecos).toContain("github-actions"); // preserved
+    // Every entry ends up with a cooldown too.
+    expect(parsed.updates.every((u) => u.cooldown?.["default-days"] === 7)).toBe(true);
+
+    const after = lint(root, config).diagnostics.map((d) => d.ruleId);
+    expect(after).not.toContain("dependabot/directories-cover-manifests");
+    expect(after).not.toContain("dependabot/release-cooldown");
+  });
+
   it("dry-run reports a plan without touching disk", () => {
     const root = scratchCopy("dependabot-missing");
     const result = lint(root, loadConfig(root, { env: {} }));

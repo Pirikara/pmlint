@@ -82,6 +82,8 @@ Auto-fixable today:
   (including a `cooldown` block).
 - Add a `cooldown` (`default-days`) to existing Dependabot entries that lack one,
   preserving the rest of the YAML.
+- Append a missing `updates` entry to an existing Dependabot config for a package
+  root that isn't covered yet (structure-preserving).
 - Switch a registry URL from `http://` to `https://`.
 - Delete a foreign lockfile — **destructive**, requires `--fix-destructive`.
 
