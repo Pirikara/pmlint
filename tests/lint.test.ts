@@ -78,6 +78,16 @@ describe("rule diagnostics (recommended preset)", () => {
     );
   });
 
+  it("flags an independent project missing a lockfile but not its self-contained sibling", () => {
+    // Two sibling projects, each managing its own deps; no root lockfile.
+    const result = lintFixture("monorepo-independent");
+    const paths = result.diagnostics
+      .filter((d) => d.ruleId === "lockfile/required")
+      .map((d) => d.filePath);
+    expect(paths).toContain("project-b/package.json"); // no lockfile
+    expect(paths).not.toContain("project-a/package.json"); // has its own lockfile
+  });
+
   it("warns on missing Dependabot config without failing", () => {
     const result = lintFixture("dependabot-missing");
     expect(ruleIds(result)).toContain("dependabot/config-present");
