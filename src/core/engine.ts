@@ -1,5 +1,6 @@
 import { dartAdapter } from "../adapters/dart.js";
 import { dotnetAdapter } from "../adapters/dotnet.js";
+import { elixirAdapter } from "../adapters/elixir.js";
 import { goAdapter } from "../adapters/go.js";
 import { javaAdapter } from "../adapters/java.js";
 import { javascriptAdapter } from "../adapters/javascript.js";
@@ -7,6 +8,7 @@ import { phpAdapter } from "../adapters/php.js";
 import { pythonAdapter } from "../adapters/python.js";
 import { rubyAdapter } from "../adapters/ruby.js";
 import { rustAdapter } from "../adapters/rust.js";
+import { swiftAdapter } from "../adapters/swift.js";
 import type { AddDiagnostic, EcosystemAdapter } from "../adapters/types.js";
 import { extractCiState } from "../ci/workflows.js";
 import type { ResolvedConfig } from "../config/types.js";
@@ -26,6 +28,8 @@ const ADAPTERS: EcosystemAdapter[] = [
   rustAdapter,
   dotnetAdapter,
   dartAdapter,
+  swiftAdapter,
+  elixirAdapter,
 ];
 
 export type LintResult = {

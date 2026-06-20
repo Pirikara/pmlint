@@ -41,6 +41,8 @@ function defaultConfig(): ResolvedConfig {
       rust: true,
       dotnet: true,
       dart: true,
+      swift: true,
+      elixir: true,
     },
     ignore: [],
     failOnWarnings: false,
@@ -142,6 +144,8 @@ export function resolveConfig(raw: RawConfig, configPath = "<inline>"): Resolved
     "rust",
     "dotnet",
     "dart",
+    "swift",
+    "elixir",
   ] as PackageEcosystem[]) {
     const enabled = raw.ecosystems?.[eco]?.enabled;
     if (typeof enabled === "boolean") {

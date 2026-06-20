@@ -209,6 +209,17 @@ export function classifyCommand(
     return mk("pub", { mutating: !frozen, frozen });
   }
 
+  // --- swift / SPM ---
+  if (/^swift\s+package\s+update\b/.test(c)) return mk("swift", { update: true });
+  if (/^swift\s+package\s+resolve\b/.test(c)) return mk("swift", { frozen: true });
+
+  // --- elixir / mix (hex) ---
+  if (/^mix\s+deps\.update\b/.test(c)) return mk("hex", { update: true });
+  if (/^mix\s+deps\.get\b/.test(c)) {
+    const frozen = /--check-locked\b/.test(c);
+    return mk("hex", { mutating: !frozen, frozen });
+  }
+
   return null;
 }
 

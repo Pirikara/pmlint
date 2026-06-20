@@ -35,6 +35,8 @@ const EXPECTED_LOCKFILE: Record<PackageManager, string> = {
   cargo: "Cargo.lock",
   nuget: "packages.lock.json",
   pub: "pubspec.lock",
+  swift: "Package.resolved",
+  hex: "mix.lock",
 };
 
 const CONFIG_TO_MANAGER: Partial<Record<string, PackageManager>> = {

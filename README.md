@@ -25,6 +25,8 @@ without installing anything.
 | Rust       | Cargo                             |
 | .NET       | NuGet                             |
 | Dart       | pub (Dart / Flutter)              |
+| Swift      | SwiftPM                           |
+| Elixir     | Hex / Mix                         |
 
 > Most ecosystems have first-class lockfiles (`go.sum`, `composer.lock`,
 > `Cargo.lock`, `pubspec.lock`, …) so `lockfile/required` applies. Java and .NET

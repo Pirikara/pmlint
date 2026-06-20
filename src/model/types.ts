@@ -15,7 +15,9 @@ export type PackageEcosystem =
   | "java"
   | "rust"
   | "dotnet"
-  | "dart";
+  | "dart"
+  | "swift"
+  | "elixir";
 
 export type PackageManager =
   | "npm"
@@ -33,7 +35,9 @@ export type PackageManager =
   | "gradle"
   | "cargo"
   | "nuget"
-  | "pub";
+  | "pub"
+  | "swift"
+  | "hex";
 
 export type ManifestKind =
   | "package.json"
@@ -52,7 +56,9 @@ export type ManifestKind =
   | "csproj"
   | "packages.config"
   | "Directory.Packages.props"
-  | "pubspec.yaml";
+  | "pubspec.yaml"
+  | "Package.swift"
+  | "mix.exs";
 
 export type LockfileKind =
   | "package-lock.json"
@@ -71,7 +77,9 @@ export type LockfileKind =
   | "gradle.lockfile"
   | "Cargo.lock"
   | "packages.lock.json"
-  | "pubspec.lock";
+  | "pubspec.lock"
+  | "Package.resolved"
+  | "mix.lock";
 
 export type PackageManagerConfigKind =
   | ".npmrc"

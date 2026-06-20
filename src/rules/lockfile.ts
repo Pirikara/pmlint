@@ -12,6 +12,8 @@ const ECOSYSTEM_HINT: Record<PackageEcosystem, string> = {
   rust: "Commit Cargo.lock.",
   dotnet: "Enable NuGet lock files and commit packages.lock.json.",
   dart: "Commit pubspec.lock.",
+  swift: "Commit Package.resolved.",
+  elixir: "Commit mix.lock.",
 };
 
 // Ecosystems without a universal lockfile concept are not required to have one.

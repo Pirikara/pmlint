@@ -21,6 +21,8 @@ export const dependabotEcosystemByManager: Record<PackageManager, string> = {
   cargo: "cargo",
   nuget: "nuget",
   pub: "pub",
+  swift: "swift",
+  hex: "mix",
 };
 
 /** Dependabot ecosystem aliases that should be treated as equivalent on read. */

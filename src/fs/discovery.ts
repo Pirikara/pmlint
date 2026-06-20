@@ -72,6 +72,12 @@ const FILE_PATTERNS = [
   // Dart / Flutter (pub)
   "**/pubspec.yaml",
   "**/pubspec.lock",
+  // Swift (SPM)
+  "**/Package.swift",
+  "**/Package.resolved",
+  // Elixir (Hex / Mix)
+  "**/mix.exs",
+  "**/mix.lock",
   // CI + Dependabot
   ".github/workflows/*.yml",
   ".github/workflows/*.yaml",
