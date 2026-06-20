@@ -192,10 +192,25 @@ export type CiInstallCommand = {
   isFrozen: boolean;
 };
 
+export type ActionReference = {
+  filePath: string;
+  line?: number;
+  /** The full `uses:` value, e.g. `actions/checkout@v4`. */
+  raw: string;
+  /** The ref after `@`, when present. */
+  ref?: string;
+  /** True when pinned to a full commit SHA (or a digest for docker actions). */
+  isPinned: boolean;
+  /** Local action (`./...`) — no pinning needed. */
+  isLocal: boolean;
+};
+
 export type CiState = {
   /** Absolute or repo-relative paths of detected workflow files. */
   workflowFiles: string[];
   commands: CiInstallCommand[];
+  /** `uses:` action references across all workflows. */
+  actions: ActionReference[];
 };
 
 /** Dependabot per-entry `cooldown` block (delays updates after a release). */

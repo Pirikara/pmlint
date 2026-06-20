@@ -1,3 +1,4 @@
+import { actionsRules } from "./actions.js";
 import { depsRules } from "./deps.js";
 import { dependabotRules } from "./dependabot.js";
 import { installRules } from "./install.js";
@@ -14,6 +15,7 @@ export const ALL_RULES: Rule[] = [
   ...javascriptRules,
   ...depsRules,
   ...installRules,
+  ...actionsRules,
   ...registryRules,
   ...dependabotRules,
   ...rubyRules,

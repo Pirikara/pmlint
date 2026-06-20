@@ -1,6 +1,11 @@
 import type { Discovery } from "../fs/discovery.js";
 import { parseYamlSafe } from "../fs/parse.js";
-import type { CiInstallCommand, CiState, PackageManager } from "../model/types.js";
+import type {
+  ActionReference,
+  CiInstallCommand,
+  CiState,
+  PackageManager,
+} from "../model/types.js";
 import type { AddDiagnostic } from "../adapters/types.js";
 
 /**
@@ -13,6 +18,7 @@ export function extractCiState(input: Discovery, addDiag: AddDiagnostic): CiStat
   );
 
   const commands: CiInstallCommand[] = [];
+  const actions: ActionReference[] = [];
 
   for (const file of workflowFiles) {
     const text = input.read(file);
@@ -28,6 +34,10 @@ export function extractCiState(input: Discovery, addDiag: AddDiagnostic): CiStat
         filePath: file,
       });
       continue;
+    }
+
+    for (const value of collectUses(parsed.value)) {
+      actions.push(classifyUses(value, file, text));
     }
 
     // File-level frozen signal for Bundler (env var or `bundle config`).
@@ -46,7 +56,37 @@ export function extractCiState(input: Discovery, addDiag: AddDiagnostic): CiStat
     }
   }
 
-  return { workflowFiles, commands };
+  return { workflowFiles, commands, actions };
+}
+
+/** Recursively collect all `uses:` step values from a parsed workflow. */
+function collectUses(node: unknown): string[] {
+  const out: string[] = [];
+  const visit = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item);
+    } else if (value && typeof value === "object") {
+      for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+        if (key === "uses" && typeof v === "string") {
+          out.push(v);
+        } else {
+          visit(v);
+        }
+      }
+    }
+  };
+  visit(node);
+  return out;
+}
+
+function classifyUses(raw: string, filePath: string, fileText: string): ActionReference {
+  const value = raw.trim();
+  const isLocal = value.startsWith("./") || value.startsWith("../") || value.startsWith(".");
+  const at = value.lastIndexOf("@");
+  const ref = at >= 0 ? value.slice(at + 1) : undefined;
+  const isPinned =
+    ref !== undefined && (/^[0-9a-f]{40}$/.test(ref) || /^[0-9a-f]{64}$/.test(ref) || ref.startsWith("sha256:"));
+  return { filePath, line: locateLine(fileText, value), raw: value, ref, isPinned, isLocal };
 }
 
 type RunString = { value: string; startLine: number };

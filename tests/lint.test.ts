@@ -110,6 +110,26 @@ describe("rule diagnostics (recommended preset)", () => {
     expect(paths).not.toContain("package.json"); // root has its own lockfile
   });
 
+  it("flags unpinned GitHub Actions but not SHA-pinned or local ones (app-strict)", () => {
+    const root = fixturePath("actions-unpinned");
+    const findings = lint(root, resolveConfig({ extends: "app-strict" })).diagnostics.filter(
+      (d) => d.ruleId === "actions/no-unpinned-uses",
+    );
+    const flagged = findings.map((f) => f.message);
+    expect(flagged.some((m) => m.includes("actions/setup-node@v4"))).toBe(true);
+    expect(flagged.some((m) => m.includes("some/third-party-action@main"))).toBe(true);
+    // SHA-pinned and local actions are not flagged.
+    expect(flagged.some((m) => m.includes("checkout"))).toBe(false);
+    expect(flagged.some((m) => m.includes("local-thing"))).toBe(false);
+    expect(findings).toHaveLength(2);
+  });
+
+  it("does not check action pinning under recommended (off by default)", () => {
+    const root = fixturePath("actions-unpinned");
+    const ids = lint(root, resolveConfig({})).diagnostics.map((d) => d.ruleId);
+    expect(ids).not.toContain("actions/no-unpinned-uses");
+  });
+
   it("warns on missing Dependabot config without failing", () => {
     const result = lintFixture("dependabot-missing");
     expect(ruleIds(result)).toContain("dependabot/config-present");

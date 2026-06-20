@@ -16,6 +16,7 @@ export const RULE_IDS = [
   // Install / CI
   "install/no-mutating-install-in-ci",
   "install/no-update-command-in-ci",
+  "actions/no-unpinned-uses",
   // Registry
   "registry/no-plaintext-token",
   "registry/no-insecure-registry",

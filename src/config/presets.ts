@@ -49,6 +49,8 @@ const appStrict: RuleSeverities = {
   "js/release-age-gate": "warn",
   "js/save-exact-configured": "warn",
   "registry/no-insecure-registry": "error",
+  // Require third-party actions to be pinned to an immutable commit SHA.
+  "actions/no-unpinned-uses": "warn",
   "dependabot/config-present": "error",
   "dependabot/directories-cover-manifests": "error",
   "dependabot/ecosystem-matches-manager": "error",

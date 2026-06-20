@@ -73,6 +73,8 @@ Set `ci.failOnWarnings: true` to fail on warnings too.
 - CI install commands that may mutate manifests/lockfiles (`npm install`,
   `pnpm install` without `--frozen-lockfile`, `uv sync` without `--locked`, …).
 - Update commands running in CI that belong to Dependabot/Renovate.
+- GitHub Actions `uses:` not pinned to a full commit SHA (mutable `@v4`/`@main`
+  tags are a supply-chain risk). On in `app-strict`.
 - Missing Dependabot config, uncovered package roots, and ecosystem mismatches.
 - Missing/short Dependabot `cooldown` (delays adopting freshly published versions;
   minimum `default-days` is configurable via `dependabot.minCooldownDays`, default 7).
