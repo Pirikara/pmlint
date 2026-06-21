@@ -1,0 +1,38 @@
+# pmlint — central org policy for fleet auditing
+#
+# Keep this file OUTSIDE the repos you scan and pass it at runtime so it is
+# authoritative — a scanned repo's own pmlint.yml is then never read, and a repo
+# cannot weaken the policy applied to it:
+#
+#   pmlint scan --org my-org --config ./org-policy.yml
+#   PMLINT_CONFIG=./org-policy.yml pmlint scan ./repo-a ./repo-b
+#
+# Add --no-repo-config to also ignore repo-local config when NOT passing
+# --config. `scan` exits non-zero if any repo is non-compliant or fails.
+
+extends:
+  - app-strict
+
+project:
+  type: app
+
+# Promote the supply-chain hardening rules to errors org-wide so they show up as
+# "non-compliant" in the fleet report (not just warnings).
+rules:
+  actions/no-unpinned-uses: error          # pin actions to a commit SHA
+  dependabot/release-cooldown: error        # cooldown is mandatory
+  dependabot/github-actions-updates: error  # Dependabot must update actions too
+  js/release-age-gate: warn
+
+# Org-wide supply-chain knobs.
+dependabot:
+  minCooldownDays: 7
+
+# A longer release-age gate (seconds) for js/release-age-gate. 604800 = 7 days.
+minReleaseAgeSeconds: 604800
+
+# Exclude vendored / generated trees that aren't owned by the team.
+ignore:
+  - "**/vendor/**"
+  - "**/third_party/**"
+  - "**/fixtures/**"

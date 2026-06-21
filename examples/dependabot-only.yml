@@ -1,0 +1,39 @@
+# pmlint — Dependabot-only policy
+#
+# Audits ONLY the Dependabot surface (config presence, coverage of every package
+# root, ecosystem/manager agreement, and release cooldown). Every other rule is
+# turned off, so this is handy for a focused "is our update automation correct?"
+# pass across many repos:
+#
+#   pmlint scan --org my-org --config ./dependabot-only.yml
+#
+# Note: there is no built-in "all-off" preset, so we start from recommended and
+# explicitly disable the non-Dependabot rules.
+
+extends:
+  - recommended
+
+# The Dependabot checks we care about (raised to errors for a hard gate).
+rules:
+  dependabot/config-present: error
+  dependabot/no-duplicate-config: error
+  dependabot/directories-cover-manifests: error
+  dependabot/ecosystem-matches-manager: error
+  dependabot/github-actions-updates: warn
+  dependabot/release-cooldown: error
+
+  # Everything else: off.
+  lockfile/required: off
+  js/no-foreign-lockfiles: off
+  js/single-manager: off
+  deps/no-floating-version: off
+  deps/no-dist-tag: off
+  deps/no-unbounded-range: off
+  deps/no-unpinned-vcs-source: off
+  install/no-mutating-install-in-ci: off
+  install/no-update-command-in-ci: off
+  registry/no-plaintext-token: off
+  registry/no-insecure-registry: off
+
+dependabot:
+  minCooldownDays: 7

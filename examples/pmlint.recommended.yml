@@ -1,0 +1,67 @@
+# pmlint — recommended preset (balanced defaults)
+#
+# Drop this in a repo as `pmlint.yml` and run `pmlint check .`.
+# This file just makes the built-in `recommended` defaults explicit; you can
+# delete most of it and rely on `extends: [recommended]` alone.
+
+extends:
+  - recommended
+
+project:
+  type: app # app | library | cli | monorepo
+
+# Limit which ecosystems are analyzed. Omit to analyze all of them.
+# (Disabling one skips its manifests, lockfiles, and dependencies entirely.)
+ecosystems:
+  javascript: { enabled: true }
+  ruby: { enabled: true }
+  python: { enabled: true }
+  go: { enabled: true }
+  php: { enabled: true }
+  java: { enabled: true }
+  rust: { enabled: true }
+  dotnet: { enabled: true }
+  dart: { enabled: true }
+  swift: { enabled: true }
+  elixir: { enabled: true }
+
+# Warnings alone do not fail the command by default (exit 0). Errors exit 1.
+ci:
+  failOnWarnings: false
+
+# What `recommended` does (shown for reference — these are the defaults):
+rules:
+  # Lockfiles: a lockfile (or declared workspace membership) is expected.
+  lockfile/required: warn
+  js/no-foreign-lockfiles: error      # e.g. pnpm repo with a stray package-lock.json
+  js/single-manager: warn             # packageManager / lockfile / config must agree
+
+  # Version pinning is only a warning here: a committed lockfile already pins
+  # resolved versions. `app-strict` raises these to errors.
+  deps/no-floating-version: warn      # "*", "", "latest"
+  deps/no-dist-tag: warn              # "next", "beta", "canary", ...
+  deps/no-unbounded-range: warn       # ">=1.0.0" with no upper bound
+  deps/no-unpinned-vcs-source: warn   # git dep on a moving branch
+
+  # CI determinism (errors): installs/updates that mutate lockfiles in CI.
+  install/no-mutating-install-in-ci: error   # `npm install` -> use `npm ci`
+  install/no-update-command-in-ci: error     # `npm update` belongs to Dependabot
+
+  # Registry hardening.
+  registry/no-plaintext-token: error  # committed _authToken / API keys (value never printed)
+  registry/no-insecure-registry: warn # http:// registry / strict-ssl=false
+
+  # Dependabot coverage + supply-chain cooldown.
+  dependabot/config-present: warn
+  dependabot/directories-cover-manifests: warn
+  dependabot/ecosystem-matches-manager: warn
+  dependabot/release-cooldown: warn   # require cooldown.default-days (min 7)
+
+# Minimum Dependabot cooldown (days) enforced by dependabot/release-cooldown.
+dependabot:
+  minCooldownDays: 7
+
+# Glob patterns to exclude from discovery.
+ignore:
+  - "**/fixtures/**"
+  - "**/testdata/**"

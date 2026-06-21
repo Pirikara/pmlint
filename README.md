@@ -182,6 +182,17 @@ layer touches the network (it shells out to `git` / `gh` for cloning and org
 enumeration). `scan` exits non-zero if any repo is non-compliant or fails to
 scan.
 
+### Example configs
+
+Ready-to-copy, commented samples live in [`examples/`](examples/):
+
+| File | Use |
+| ---- | --- |
+| [`pmlint.recommended.yml`](examples/pmlint.recommended.yml) | Balanced defaults, every option spelled out. |
+| [`pmlint.app-strict.yml`](examples/pmlint.app-strict.yml) | Strict policy for deployed apps. |
+| [`org-policy.yml`](examples/org-policy.yml) | Central policy to pass to `pmlint scan --config` for fleet audits. |
+| [`dependabot-only.yml`](examples/dependabot-only.yml) | Audit only the Dependabot surface; everything else off. |
+
 ### Presets
 
 - **`recommended`** — balanced defaults. Foreign lockfiles and mutating/updating

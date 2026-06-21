@@ -1,0 +1,55 @@
+# pmlint — app-strict preset (for deployed applications)
+#
+# Stricter than `recommended`: version pinning becomes an error, a pinned
+# package manager is required, registry hardening and Dependabot coverage are
+# enforced, and unpinned GitHub Actions are flagged.
+
+extends:
+  - app-strict
+
+project:
+  type: app
+
+# Fail CI on warnings too, if you want a hard gate.
+ci:
+  failOnWarnings: false
+
+# What `app-strict` adds/raises on top of recommended (for reference):
+rules:
+  lockfile/required: error             # a lockfile is mandatory
+  js/single-manager: error
+  js/package-manager-pinned: error     # package.json#packageManager required
+  js/release-age-gate: warn            # configure a minimum release age
+  js/save-exact-configured: warn       # save new deps as exact versions
+
+  # Direct deps should be exact/narrow regardless of the lockfile.
+  deps/no-floating-version: error
+  deps/no-dist-tag: error
+  deps/no-unbounded-range: error
+  deps/no-unpinned-vcs-source: error
+
+  install/no-mutating-install-in-ci: error
+  install/no-update-command-in-ci: error
+
+  # GitHub Actions must be pinned to a full commit SHA (mutable @v4/@main tags
+  # are a supply-chain risk).
+  actions/no-unpinned-uses: warn
+
+  registry/no-plaintext-token: error
+  registry/no-insecure-registry: error
+
+  dependabot/config-present: error
+  dependabot/directories-cover-manifests: error
+  dependabot/ecosystem-matches-manager: error
+  dependabot/github-actions-updates: warn
+  dependabot/release-cooldown: warn
+
+  # Python: also require exact pins (complements deps/* for pip-style reqs).
+  python/requirements-pinned: error
+
+# Require an exact package-manager version, e.g. "pnpm@10.16.1" (implied by
+# app-strict; shown here so it is easy to find/toggle).
+requireExactPackageManagerVersion: true
+
+dependabot:
+  minCooldownDays: 7
