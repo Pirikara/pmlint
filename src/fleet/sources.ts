@@ -21,6 +21,8 @@ export type ResolveOptions = {
   limit?: number;
   /** Keep cloned directories instead of cleaning them up. */
   keepClones?: boolean;
+  /** Per-repo clone timeout in ms (default 120000). A hung clone fails fast. */
+  cloneTimeoutMs?: number;
   /** Progress callback (clone/resolve phase). */
   onProgress?: (p: ResolveProgress) => void;
 };
@@ -108,7 +110,12 @@ export function listOrgRepos(org: string, limit = 0): string[] {
     throw new SourceError("Scanning an org requires the GitHub CLI (`gh`) to be installed and authenticated.");
   }
   const run = (args: string[]): string[] => {
-    const out = execFileSync("gh", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+    const out = execFileSync("gh", args, {
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+      timeout: 120_000,
+      env: NON_INTERACTIVE_ENV,
+    });
     return out
       .split(/\r?\n/)
       .map((l) => l.trim())
@@ -131,7 +138,23 @@ export function listOrgRepos(org: string, limit = 0): string[] {
   }
 }
 
-function cloneSpec(spec: string): ResolvedRepo & { cleanup: () => void } {
+/** Default per-repo clone timeout (ms). A hung clone is marked failed, not stuck. */
+const CLONE_TIMEOUT_MS = 120_000;
+
+/**
+ * Environment that makes git/gh non-interactive, so a repo we can't access
+ * fails fast instead of blocking forever on a credential prompt — the usual
+ * cause of a fleet scan "freezing" partway through.
+ */
+const NON_INTERACTIVE_ENV = {
+  ...process.env,
+  GIT_TERMINAL_PROMPT: "0",
+  GIT_LFS_SKIP_SMUDGE: "1",
+  GCM_INTERACTIVE: "never",
+  GH_PROMPT_DISABLED: "1",
+};
+
+function cloneSpec(spec: string, timeoutMs = CLONE_TIMEOUT_MS): ResolvedRepo & { cleanup: () => void } {
   const dir = mkdtempSync(path.join(tmpdir(), "pmlint-scan-"));
   const cleanup = () => {
     try {
@@ -141,16 +164,27 @@ function cloneSpec(spec: string): ResolvedRepo & { cleanup: () => void } {
     }
   };
   const preferGh = hasCommand("gh") && /^[\w.-]+\/[\w.-]+$/.test(spec);
+  const opts = {
+    stdio: "ignore" as const,
+    timeout: timeoutMs,
+    killSignal: "SIGKILL" as const,
+    env: NON_INTERACTIVE_ENV,
+  };
   try {
     if (preferGh) {
-      execFileSync("gh", ["repo", "clone", spec, dir, "--", "--depth", "1"], { stdio: "ignore" });
+      execFileSync("gh", ["repo", "clone", spec, dir, "--", "--depth", "1", "--no-tags"], opts);
     } else {
-      execFileSync("git", ["clone", "--depth", "1", cloneUrl(spec), dir], { stdio: "ignore" });
+      execFileSync("git", ["clone", "--depth", "1", "--no-tags", cloneUrl(spec), dir], opts);
     }
     return { target: spec, root: dir, cleanup };
   } catch (err) {
     cleanup();
-    return { target: spec, root: dir, error: `clone failed: ${(err as Error).message}`, cleanup: () => {} };
+    const e = err as NodeJS.ErrnoException & { signal?: string };
+    const reason =
+      e.signal === "SIGKILL" || e.code === "ETIMEDOUT"
+        ? `clone timed out after ${Math.round(timeoutMs / 1000)}s`
+        : `clone failed: ${e.message}`;
+    return { target: spec, root: dir, error: reason, cleanup: () => {} };
   }
 }
 
@@ -173,7 +207,7 @@ export function resolveTargets(targets: string[], options: ResolveOptions = {}):
       repos.push({ target: spec, root: path.resolve(spec) });
     } else if (isRemoteSpec(spec)) {
       cloned = true;
-      const result = cloneSpec(spec);
+      const result = cloneSpec(spec, options.cloneTimeoutMs);
       repos.push({ target: result.target, root: result.root, error: result.error });
       if (!options.keepClones) {
         cleanups.push(result.cleanup);

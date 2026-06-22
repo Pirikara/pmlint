@@ -80,4 +80,16 @@ describe("runScan (local targets)", () => {
   it("errors (exit 2) when given no targets", () => {
     expect(runScan({ targets: [] }).exitCode).toBe(2);
   });
+
+  it("marks an unreachable remote as failed without hanging", () => {
+    // A non-existent remote would prompt for credentials and hang forever
+    // without GIT_TERMINAL_PROMPT=0 + a clone timeout. It must fail fast.
+    const outcome = runScan({
+      targets: ["https://github.com/pirikara-organization-test/__pmlint_does_not_exist__.git"],
+      cloneTimeoutSeconds: 15,
+      progress: false,
+    });
+    expect(outcome.exitCode).toBe(1);
+    expect(outcome.stdout).toContain("Failed to scan");
+  }, 30_000);
 });

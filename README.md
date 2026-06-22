@@ -213,6 +213,10 @@ pollutes the report on stdout or a `--output` file):
 It auto-enables on an interactive terminal (overwriting one line in place) and
 stays quiet when piped. Use `--no-progress` to disable it.
 
+Clones run non-interactively (no credential prompts) with a per-repo timeout, so
+a single unreachable or huge repo is marked **failed** and the scan keeps going
+instead of hanging. Tune it with `--clone-timeout <seconds>` (default 120).
+
 ### Example configs
 
 Ready-to-copy, commented samples live in [`examples/`](examples/):

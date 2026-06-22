@@ -13,6 +13,8 @@ export type ScanOptions = {
   noRepoConfig?: boolean;
   format?: OutputFormat;
   keepClones?: boolean;
+  /** Per-repo clone timeout in seconds. */
+  cloneTimeoutSeconds?: number;
   /** Show progress on stderr (default true when stderr is a TTY). */
   progress?: boolean;
 };
@@ -42,6 +44,10 @@ export function runScan(opts: ScanOptions): CommandOutcome {
       org: opts.org,
       limit: opts.limit,
       keepClones: opts.keepClones,
+      cloneTimeoutMs:
+        opts.cloneTimeoutSeconds && opts.cloneTimeoutSeconds > 0
+          ? opts.cloneTimeoutSeconds * 1000
+          : undefined,
       onProgress: (p) => {
         if (p.phase === "enumerating") {
           progress.line(`Enumerating repos in org "${p.org}"…`);

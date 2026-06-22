@@ -57,6 +57,7 @@ function main(argv: string[]): void {
     .option("--output <path>", "Write the report to a file instead of stdout")
     .option("--no-progress", "Disable the progress indicator on stderr")
     .option("--keep-clones", "Keep cloned repositories instead of deleting them")
+    .option("--clone-timeout <seconds>", "Per-repo clone timeout (default 120)")
     .action((targets: string[] | undefined, options: Record<string, unknown>) => {
       const outcome = runScan({
         targets: targets ?? [],
@@ -67,6 +68,7 @@ function main(argv: string[]): void {
         noRepoConfig: options.repoConfig === false,
         format: options.format as OutputFormat,
         keepClones: options.keepClones === true,
+        cloneTimeoutSeconds: options.cloneTimeout === undefined ? undefined : Number(options.cloneTimeout),
         progress: options.progress === false ? false : undefined,
       });
       emit(outcome, options.output as string | undefined);
