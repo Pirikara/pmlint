@@ -17,6 +17,7 @@
     "pmlint": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "engines": {
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@types/node": "^25.9.3",
     "@types/semver": "^7.5.8",
+    "@vitest/coverage-v8": "4.1.9",
     "tsx": "^4.19.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
