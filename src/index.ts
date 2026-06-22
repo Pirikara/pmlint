@@ -55,6 +55,7 @@ function main(argv: string[]): void {
     .option("--no-repo-config", "Ignore each repo's own pmlint.yml (audit mode)")
     .option("--format <format>", "Output format: stylish | json", { default: "stylish" })
     .option("--output <path>", "Write the report to a file instead of stdout")
+    .option("--no-progress", "Disable the progress indicator on stderr")
     .option("--keep-clones", "Keep cloned repositories instead of deleting them")
     .action((targets: string[] | undefined, options: Record<string, unknown>) => {
       const outcome = runScan({
@@ -65,6 +66,7 @@ function main(argv: string[]): void {
         noRepoConfig: options.repoConfig === false,
         format: options.format as OutputFormat,
         keepClones: options.keepClones === true,
+        progress: options.progress === false ? false : undefined,
       });
       emit(outcome, options.output as string | undefined);
     });

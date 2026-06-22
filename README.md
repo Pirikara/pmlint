@@ -200,6 +200,17 @@ layer touches the network (it shells out to `git` / `gh` for cloning and org
 enumeration). `scan` exits non-zero if any repo is non-compliant or fails to
 scan.
 
+While scanning many repos, progress is shown on **stderr** (so it never
+pollutes the report on stdout or a `--output` file):
+
+```text
+[12/50] cloned acme/service-a
+[12/50] scanned acme/service-a (2 errors)
+```
+
+It auto-enables on an interactive terminal (overwriting one line in place) and
+stays quiet when piped. Use `--no-progress` to disable it.
+
 ### Example configs
 
 Ready-to-copy, commented samples live in [`examples/`](examples/):

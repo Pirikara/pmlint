@@ -2,6 +2,7 @@ import type { OutputFormat, CommandOutcome } from "./check.js";
 import { aggregate, fleetExitCode } from "../fleet/scan.js";
 import { renderFleetJson, renderFleetStylish } from "../fleet/report.js";
 import { resolveTargets, SourceError } from "../fleet/sources.js";
+import { createProgressReporter } from "./progress.js";
 
 export type ScanOptions = {
   targets: string[];
@@ -11,6 +12,8 @@ export type ScanOptions = {
   noRepoConfig?: boolean;
   format?: OutputFormat;
   keepClones?: boolean;
+  /** Show progress on stderr (default true when stderr is a TTY). */
+  progress?: boolean;
 };
 
 /**
@@ -30,14 +33,25 @@ export function runScan(opts: ScanOptions): CommandOutcome {
     };
   }
 
+  const progress = createProgressReporter(opts.progress);
+
   let resolved;
   try {
     resolved = resolveTargets(opts.targets, {
       org: opts.org,
       limit: opts.limit,
       keepClones: opts.keepClones,
+      onProgress: (p) => {
+        if (p.phase === "enumerating") {
+          progress.line(`Enumerating repos in org "${p.org}"…`);
+        } else {
+          const verb = p.cloned ? "cloned" : "resolved";
+          progress.update(`[${p.done}/${p.total}] ${verb} ${p.spec}`);
+        }
+      },
     });
   } catch (err) {
+    progress.done();
     if (err instanceof SourceError) {
       return { stdout: "", stderr: err.message, exitCode: 2 };
     }
@@ -45,10 +59,21 @@ export function runScan(opts: ScanOptions): CommandOutcome {
   }
 
   try {
-    const report = aggregate(resolved.repos, {
-      configPath: opts.config,
-      noRepoConfig: opts.noRepoConfig,
-    });
+    const report = aggregate(
+      resolved.repos,
+      { configPath: opts.config, noRepoConfig: opts.noRepoConfig },
+      (p) => {
+        const r = p.result;
+        const tag =
+          r.status === "failed"
+            ? "failed"
+            : r.status === "non-compliant"
+              ? `${r.errors} error${r.errors === 1 ? "" : "s"}`
+              : "ok";
+        progress.update(`[${p.done}/${p.total}] scanned ${r.target} (${tag})`);
+      },
+    );
+    progress.done();
     const stdout = format === "json" ? renderFleetJson(report) : renderFleetStylish(report);
     return { stdout, exitCode: fleetExitCode(report) };
   } finally {

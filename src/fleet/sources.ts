@@ -10,6 +10,10 @@ import type { ResolvedRepo } from "./types.js";
  * org) into local directories for the (offline) engine to scan.
  */
 
+export type ResolveProgress =
+  | { phase: "enumerating"; org: string }
+  | { phase: "resolving"; done: number; total: number; spec: string; cloned: boolean };
+
 export type ResolveOptions = {
   /** GitHub org to enumerate via `gh` and add to the targets. */
   org?: string;
@@ -17,6 +21,8 @@ export type ResolveOptions = {
   limit?: number;
   /** Keep cloned directories instead of cleaning them up. */
   keepClones?: boolean;
+  /** Progress callback (clone/resolve phase). */
+  onProgress?: (p: ResolveProgress) => void;
 };
 
 export type ResolveResult = {
@@ -106,29 +112,33 @@ function cloneSpec(spec: string): ResolvedRepo & { cleanup: () => void } {
 
 /** Resolve all targets (plus any org enumeration) into local directories. */
 export function resolveTargets(targets: string[], options: ResolveOptions = {}): ResolveResult {
+  const report = options.onProgress ?? (() => {});
   const specs = [...targets];
   if (options.org) {
+    report({ phase: "enumerating", org: options.org });
     specs.push(...listOrgRepos(options.org, options.limit));
   }
 
   const repos: ResolvedRepo[] = [];
   const cleanups: Array<() => void> = [];
+  const total = specs.length;
 
-  for (const spec of specs) {
+  specs.forEach((spec, i) => {
+    let cloned = false;
     if (isLocalDir(spec)) {
       repos.push({ target: spec, root: path.resolve(spec) });
-      continue;
-    }
-    if (isRemoteSpec(spec)) {
-      const cloned = cloneSpec(spec);
-      repos.push({ target: cloned.target, root: cloned.root, error: cloned.error });
+    } else if (isRemoteSpec(spec)) {
+      cloned = true;
+      const result = cloneSpec(spec);
+      repos.push({ target: result.target, root: result.root, error: result.error });
       if (!options.keepClones) {
-        cleanups.push(cloned.cleanup);
+        cleanups.push(result.cleanup);
       }
-      continue;
+    } else {
+      repos.push({ target: spec, root: spec, error: `not a directory and not a recognized repo spec` });
     }
-    repos.push({ target: spec, root: spec, error: `not a directory and not a recognized repo spec` });
-  }
+    report({ phase: "resolving", done: i + 1, total, spec, cloned });
+  });
 
   return { repos, cleanups };
 }

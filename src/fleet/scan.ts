@@ -11,30 +11,39 @@ import type { FleetReport, RepoScanResult, ResolvedRepo, RuleRollup } from "./ty
  * remote targets happens in the sources layer and is passed in here, keeping
  * aggregation pure and testable.
  */
-export function aggregate(repos: ResolvedRepo[], configOpts: LoadConfigOptions = {}): FleetReport {
+export type ScanProgress = { done: number; total: number; result: RepoScanResult };
+
+export function aggregate(
+  repos: ResolvedRepo[],
+  configOpts: LoadConfigOptions = {},
+  onProgress?: (p: ScanProgress) => void,
+): FleetReport {
   const results: RepoScanResult[] = [];
 
-  for (const repo of repos) {
+  repos.forEach((repo, i) => {
+    let result: RepoScanResult;
     if (repo.error) {
-      results.push(failed(repo.target, repo.root, repo.error));
-      continue;
+      result = failed(repo.target, repo.root, repo.error);
+    } else {
+      try {
+        const config = loadConfig(repo.root, configOpts);
+        const lintResult = lint(repo.root, config);
+        result = {
+          target: repo.target,
+          root: repo.root,
+          status: lintResult.summary.errors > 0 ? "non-compliant" : "compliant",
+          errors: lintResult.summary.errors,
+          warnings: lintResult.summary.warnings,
+          diagnostics: lintResult.diagnostics,
+        };
+      } catch (err) {
+        const message = err instanceof ConfigError ? err.message : (err as Error).message;
+        result = failed(repo.target, repo.root, message);
+      }
     }
-    try {
-      const config = loadConfig(repo.root, configOpts);
-      const result = lint(repo.root, config);
-      results.push({
-        target: repo.target,
-        root: repo.root,
-        status: result.summary.errors > 0 ? "non-compliant" : "compliant",
-        errors: result.summary.errors,
-        warnings: result.summary.warnings,
-        diagnostics: result.diagnostics,
-      });
-    } catch (err) {
-      const message = err instanceof ConfigError ? err.message : (err as Error).message;
-      results.push(failed(repo.target, repo.root, message));
-    }
-  }
+    results.push(result);
+    onProgress?.({ done: i + 1, total: repos.length, result });
+  });
 
   return {
     version: VERSION,
