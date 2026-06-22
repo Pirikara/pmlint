@@ -36,9 +36,22 @@ without installing anything.
 
 ## Install
 
+> **Not published to npm yet.** For now, clone and build from source:
+
 ```bash
-npm install -g pmlint
-# or run without installing
+git clone https://github.com/Pirikara/pmlint.git
+cd pmlint
+pnpm install
+pnpm build
+node dist/index.js check /path/to/repo
+# or run from source without building:
+pnpm pmlint check /path/to/repo
+```
+
+Once published, the usual flow will work:
+
+```bash
+npm install -g pmlint   # (coming soon)
 npx pmlint check .
 ```
 
@@ -192,6 +205,7 @@ Ready-to-copy, commented samples live in [`examples/`](examples/):
 | [`pmlint.app-strict.yml`](examples/pmlint.app-strict.yml) | Strict policy for deployed apps. |
 | [`org-policy.yml`](examples/org-policy.yml) | Central policy to pass to `pmlint scan --config` for fleet audits. |
 | [`dependabot-only.yml`](examples/dependabot-only.yml) | Audit only the Dependabot surface; everything else off. |
+| [`lockfile-and-cooldown-only.yml`](examples/lockfile-and-cooldown-only.yml) | Check only lockfile presence + cooldown (package-manager release age and Dependabot cooldown). |
 
 ### Presets
 

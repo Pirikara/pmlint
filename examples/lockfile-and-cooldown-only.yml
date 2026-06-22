@@ -1,0 +1,61 @@
+# pmlint — lockfile presence + cooldown only
+#
+# Checks just two things:
+#   1. Lockfile presence (lockfile/required)
+#   2. Cooldown configuration, at two layers:
+#        - package-manager minimum release age   (js/release-age-gate, JS only)
+#        - Dependabot cooldown.default-days       (dependabot/release-cooldown)
+#
+# The Dependabot cooldown check only fires when a .github/dependabot.yml exists;
+# if there is no Dependabot config, nothing is reported for layer 2b (we keep
+# dependabot/config-present off so a missing file is not flagged either).
+#
+#   pmlint check . --config examples/lockfile-and-cooldown-only.yml
+#   pmlint scan --org my-org --config examples/lockfile-and-cooldown-only.yml
+
+extends:
+  - recommended
+
+rules:
+  # --- what we DO want ---
+  lockfile/required: warn            # 1. lockfile presence (per package root)
+  js/release-age-gate: warn          # 2a. npm/pnpm/yarn/bun minimum release age
+  dependabot/release-cooldown: warn  # 2b. dependabot.yml cooldown (only if it exists)
+
+  # --- everything else: off ---
+  js/no-foreign-lockfiles: off
+  js/single-manager: off
+  js/package-manager-pinned: off
+  js/save-exact-configured: off
+  deps/no-floating-version: off
+  deps/no-dist-tag: off
+  deps/no-unbounded-range: off
+  deps/no-unpinned-vcs-source: off
+  install/no-mutating-install-in-ci: off
+  install/no-update-command-in-ci: off
+  actions/no-unpinned-uses: off
+  registry/no-plaintext-token: off
+  registry/no-insecure-registry: off
+  dependabot/config-present: off            # do NOT flag a missing dependabot.yml
+  dependabot/no-duplicate-config: off
+  dependabot/directories-cover-manifests: off
+  dependabot/ecosystem-matches-manager: off
+  dependabot/github-actions-updates: off
+  ruby/gemfile-lock-required: off
+  ruby/frozen-install-in-ci: off
+  ruby/no-unpinned-git-source: off
+  ruby/no-unbounded-gem-version: off
+  python/lockfile-required: off
+  python/requirements-pinned: off
+  python/require-hashes: off
+  python/no-unpinned-vcs-requirement: off
+  poetry/lockfile-required: off
+  uv/locked-in-ci: off
+
+# Minimum acceptable Dependabot cooldown (days). default-days below this fails.
+dependabot:
+  minCooldownDays: 7
+
+# Minimum acceptable package-manager release-age gate (seconds). 604800 = 7 days.
+# Set to 0 to only require that *some* gate is configured.
+minReleaseAgeSeconds: 604800
