@@ -35,6 +35,11 @@ export function parsePythonRequirement(rawLine: string): ParsedRequirement | nul
   const editable = line.startsWith("-e");
   if (editable) {
     line = line.replace(/^-e\s+/, "").trim();
+    // `-e .` / `-e ./pkg` is a local editable path (often the project itself),
+    // not a registry dependency to lint.
+    if (line === "." || /^\.\.?(\/|$)/.test(line)) {
+      return null;
+    }
   }
 
   // PEP 508 direct reference: `name @ url` (VCS / URL / local path).
