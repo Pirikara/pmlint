@@ -179,13 +179,14 @@ export const releaseAgeGate: Rule = {
       if (seconds === undefined) {
         findings.push({
           message: `No minimum release-age gate is configured for ${surface.manager}.`,
-          filePath: surface.manifests[0]?.path ?? surface.root,
-          suggestion: "Configure a minimum release age to slow adoption of freshly published versions.",
+          filePath: releaseAgeConfigFile(surface),
+          suggestion: releaseAgeSuggestion(surface.manager),
         });
       } else if (threshold > 0 && seconds < threshold) {
         findings.push({
           message: `Minimum release-age gate (${seconds}s) is below the required ${threshold}s.`,
-          filePath: surface.manifests[0]?.path ?? surface.root,
+          filePath: releaseAgeConfigFile(surface),
+          suggestion: releaseAgeSuggestion(surface.manager),
         });
       }
     }
@@ -233,28 +234,46 @@ function parseNpmrc(text: string): Map<string, string> {
   return map;
 }
 
+/**
+ * Read the configured minimum-release-age gate, normalized to seconds.
+ *
+ * Each package manager uses a different key, file, AND unit (verified against
+ * npm 11.10.0 / pnpm / yarn / bun docs):
+ *   npm   min-release-age          .npmrc                days
+ *   pnpm  minimumReleaseAge        pnpm-workspace.yaml   minutes  (pnpm 11+)
+ *         minimum-release-age      .npmrc                minutes  (pnpm 10.x)
+ *   yarn  npmMinimalAgeGate        .yarnrc.yml           minutes
+ *   bun   install.minimumReleaseAge bunfig.toml          seconds
+ */
 function readReleaseAgeSeconds(surface: PackageSurface): number | undefined {
   switch (surface.manager) {
     case "npm": {
       const npmrc = configOf(surface, ".npmrc");
       if (!npmrc || typeof npmrc.raw !== "string") return undefined;
-      const map = parseNpmrc(npmrc.raw);
-      const v = map.get("minimum-release-age") ?? map.get("min-release-age");
-      return v ? Number(v) : undefined;
+      const v = parseNpmrc(npmrc.raw).get("min-release-age");
+      return v !== undefined ? Number(v) * 86_400 : undefined; // npm: days
     }
     case "pnpm": {
+      // pnpm 11+: pnpm-workspace.yaml; pnpm 10.x: .npmrc minimum-release-age. Both minutes.
       const ws = configOf(surface, "pnpm-workspace.yaml");
-      if (!ws || typeof ws.raw !== "string") return undefined;
-      const parsed = parseYamlSafe<Record<string, unknown>>(ws.raw);
-      const v = parsed.ok ? parsed.value?.minimumReleaseAge : undefined;
-      return typeof v === "number" ? v * 60 : undefined; // pnpm uses minutes
+      if (ws && typeof ws.raw === "string") {
+        const parsed = parseYamlSafe<Record<string, unknown>>(ws.raw);
+        const v = parsed.ok ? parsed.value?.minimumReleaseAge : undefined;
+        if (typeof v === "number") return v * 60;
+      }
+      const npmrc = configOf(surface, ".npmrc");
+      if (npmrc && typeof npmrc.raw === "string") {
+        const v = parseNpmrc(npmrc.raw).get("minimum-release-age");
+        if (v !== undefined) return Number(v) * 60;
+      }
+      return undefined;
     }
     case "yarn": {
       const yarnrc = configOf(surface, ".yarnrc.yml");
       if (!yarnrc || typeof yarnrc.raw !== "string") return undefined;
       const parsed = parseYamlSafe<Record<string, unknown>>(yarnrc.raw);
       const v = parsed.ok ? parsed.value?.npmMinimalAgeGate : undefined;
-      return typeof v === "number" ? v * 60 : undefined;
+      return typeof v === "number" ? v * 60 : undefined; // yarn: minutes
     }
     case "bun": {
       const bunfig = configOf(surface, "bunfig.toml");
@@ -264,10 +283,43 @@ function readReleaseAgeSeconds(surface: PackageSurface): number | undefined {
         ? (parsed.value?.install as Record<string, unknown> | undefined)
         : undefined;
       const v = install?.minimumReleaseAge;
-      return typeof v === "number" ? v : undefined;
+      return typeof v === "number" ? v : undefined; // bun: seconds
     }
     default:
       return undefined;
+  }
+}
+
+/** The config file the gate lives in (existing one, or where it should go). */
+function releaseAgeConfigFile(surface: PackageSurface): string {
+  const join = (name: string) => (surface.root === "." ? name : `${surface.root}/${name}`);
+  const expected: Record<string, string> = {
+    npm: ".npmrc",
+    pnpm: "pnpm-workspace.yaml",
+    yarn: ".yarnrc.yml",
+    bun: "bunfig.toml",
+  };
+  const kind = expected[surface.manager];
+  if (!kind) {
+    return surface.manifests[0]?.path ?? surface.root;
+  }
+  // Prefer an existing config file of that kind; else point at where it'd go.
+  const existing = surface.configs.find((c) => c.kind === kind);
+  return existing?.path ?? join(kind);
+}
+
+function releaseAgeSuggestion(manager: PackageManager | "unknown"): string {
+  switch (manager) {
+    case "npm":
+      return "Set `min-release-age` (days) in .npmrc, e.g. `min-release-age=7`.";
+    case "pnpm":
+      return "Set `minimumReleaseAge` (minutes) in pnpm-workspace.yaml.";
+    case "yarn":
+      return "Set `npmMinimalAgeGate` (minutes) in .yarnrc.yml.";
+    case "bun":
+      return "Set `install.minimumReleaseAge` (seconds) in bunfig.toml.";
+    default:
+      return "Configure a minimum release age to slow adoption of freshly published versions.";
   }
 }
 
