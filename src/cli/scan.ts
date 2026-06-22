@@ -7,6 +7,7 @@ import { createProgressReporter } from "./progress.js";
 export type ScanOptions = {
   targets: string[];
   org?: string;
+  /** Max repos from --org. Use 0 (or pass `all`) for every repo. */
   limit?: number;
   config?: string;
   noRepoConfig?: boolean;

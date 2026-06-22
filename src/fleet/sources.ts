@@ -70,19 +70,62 @@ function cloneUrl(spec: string): string {
   return `https://github.com/${spec}.git`;
 }
 
+/**
+ * Build the `gh` argv to list an org's non-archived repos.
+ *
+ * - `limit <= 0` ("all"): page through every repo via the REST API
+ *   (`gh api --paginate`), which has no cap.
+ * - `limit > 0`: `gh repo list --limit N` (gh paginates internally up to N).
+ */
+export function orgReposCommand(org: string, limit: number): string[] {
+  if (limit <= 0) {
+    return [
+      "api",
+      "--paginate",
+      `orgs/${org}/repos?per_page=100&type=all`,
+      "--jq",
+      ".[] | select(.archived == false) | .full_name",
+    ];
+  }
+  return [
+    "repo",
+    "list",
+    org,
+    "--limit",
+    String(limit),
+    "--no-archived",
+    "--json",
+    "nameWithOwner",
+    "-q",
+    ".[].nameWithOwner",
+  ];
+}
+
 /** Enumerate an org's repositories via the `gh` CLI. Returns owner/repo specs. */
 export function listOrgRepos(org: string, limit = 100): string[] {
   if (!hasCommand("gh")) {
     throw new SourceError("Scanning an org requires the GitHub CLI (`gh`) to be installed and authenticated.");
   }
+  const run = (args: string[]): string[] => {
+    const out = execFileSync("gh", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+    return out
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+  };
+
   try {
-    const out = execFileSync(
-      "gh",
-      ["repo", "list", org, "--limit", String(limit), "--no-archived", "--json", "nameWithOwner", "-q", ".[].nameWithOwner"],
-      { encoding: "utf8" },
-    );
-    return out.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    return run(orgReposCommand(org, limit));
   } catch (err) {
+    // The REST org endpoint 404s for a user account; fall back to `gh repo
+    // list`, which works for both users and orgs (capped at a high limit).
+    if (limit <= 0) {
+      try {
+        return run(orgReposCommand(org, 100000));
+      } catch {
+        /* fall through to the original error */
+      }
+    }
     throw new SourceError(`Failed to list repos for org "${org}": ${(err as Error).message}`);
   }
 }
