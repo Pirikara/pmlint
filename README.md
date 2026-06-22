@@ -191,8 +191,10 @@ pmlint scan ./service-a ./service-b --config ./org-policy.yml
 # Remote repos (shallow-cloned to a temp dir, then cleaned up):
 pmlint scan owner/repo https://github.com/owner/other --no-repo-config
 
-# A whole GitHub org (enumerated via the gh CLI), JSON for a dashboard:
+# A whole GitHub org (enumerated via the gh CLI), JSON for a dashboard.
+# --org scans EVERY repo by default (paginated); add --limit N to cap it.
 pmlint scan --org my-org --config ./org-policy.yml --format json --output fleet.json
+pmlint scan --org my-org --limit 50          # only the first 50 repos
 ```
 
 The static engine stays offline and deterministic; only the `scan` sources

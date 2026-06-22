@@ -101,8 +101,9 @@ export function orgReposCommand(org: string, limit: number): string[] {
   ];
 }
 
-/** Enumerate an org's repositories via the `gh` CLI. Returns owner/repo specs. */
-export function listOrgRepos(org: string, limit = 100): string[] {
+/** Enumerate an org's repositories via the `gh` CLI. Returns owner/repo specs.
+ *  `limit` defaults to 0 = all (paginated). */
+export function listOrgRepos(org: string, limit = 0): string[] {
   if (!hasCommand("gh")) {
     throw new SourceError("Scanning an org requires the GitHub CLI (`gh`) to be installed and authenticated.");
   }

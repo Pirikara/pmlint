@@ -50,8 +50,7 @@ function main(argv: string[]): void {
   cli
     .command("scan [...targets]", "Scan many repos (paths, URLs, owner/repo, or --org) and aggregate")
     .option("--org <name>", "Enumerate a GitHub org's repos via the gh CLI")
-    .option("--limit <n>", "Max repos to take from --org (0 = all)", { default: 100 })
-    .option("--all", "Scan every repo in --org (no limit)")
+    .option("--limit <n>", "Cap repos taken from --org (default: all)")
     .option("--config <path>", "Path to a central pmlint policy (authoritative)")
     .option("--no-repo-config", "Ignore each repo's own pmlint.yml (audit mode)")
     .option("--format <format>", "Output format: stylish | json", { default: "stylish" })
@@ -62,7 +61,8 @@ function main(argv: string[]): void {
       const outcome = runScan({
         targets: targets ?? [],
         org: options.org as string | undefined,
-        limit: options.all === true ? 0 : Number(options.limit ?? 100),
+        // Default: all repos (limit 0). A bound applies only with --limit N.
+        limit: options.limit === undefined ? 0 : Number(options.limit),
         config: options.config as string | undefined,
         noRepoConfig: options.repoConfig === false,
         format: options.format as OutputFormat,
