@@ -1,4 +1,11 @@
 import type { PackageSurface } from "../model/types.js";
+import { parseTomlSafe } from "../fs/parse.js";
+import {
+  configOf,
+  daysToSeconds,
+  parseExcludeNewer,
+  type GateValue,
+} from "./release-age.js";
 import type { Finding, Rule, RuleContext } from "./types.js";
 
 function pythonSurfaces(ctx: RuleContext): PackageSurface[] {
@@ -149,11 +156,83 @@ function lockHint(manager: PackageSurface["manager"]): string {
   }
 }
 
+/** Poetry `[solver] min-release-age` (days) in poetry.toml. */
+function poetryGateSeconds(surface: PackageSurface): GateValue {
+  const poetryToml = configOf(surface, "poetry.toml");
+  if (!poetryToml || typeof poetryToml.raw !== "string") return undefined;
+  const parsed = parseTomlSafe<Record<string, unknown>>(poetryToml.raw);
+  const solver = parsed.ok ? (parsed.value?.solver as Record<string, unknown> | undefined) : undefined;
+  const days = solver?.["min-release-age"];
+  return typeof days === "number" ? daysToSeconds(days) : undefined;
+}
+
+/** uv `[tool.uv] exclude-newer` in pyproject.toml or uv.toml. */
+function uvGateSeconds(surface: PackageSurface): GateValue {
+  const uvToml = configOf(surface, "uv.toml");
+  if (uvToml && typeof uvToml.raw === "string") {
+    const parsed = parseTomlSafe<Record<string, unknown>>(uvToml.raw);
+    const v = parsed.ok ? parsed.value?.["exclude-newer"] : undefined;
+    if (typeof v === "string") return parseExcludeNewer(v);
+  }
+  const pyproject = configOf(surface, "pyproject.toml");
+  if (pyproject && typeof pyproject.raw === "object" && pyproject.raw) {
+    const tool = (pyproject.raw as Record<string, unknown>).tool as Record<string, unknown> | undefined;
+    const uv = tool?.uv as Record<string, unknown> | undefined;
+    const v = uv?.["exclude-newer"];
+    if (typeof v === "string") return parseExcludeNewer(v);
+  }
+  return undefined;
+}
+
+export const releaseAgeGate: Rule = {
+  id: "python/release-age-gate",
+  check(ctx) {
+    const findings: Finding[] = [];
+    const threshold = ctx.config.options.minReleaseAgeSeconds;
+    for (const surface of pythonSurfaces(ctx)) {
+      // Only Poetry and uv have a native release-age gate today.
+      let gate: GateValue;
+      let where: string | undefined;
+      let suggestion: string;
+      if (surface.manager === "poetry") {
+        gate = poetryGateSeconds(surface);
+        where = configOf(surface, "poetry.toml")?.path ?? surface.manifests[0]?.path;
+        suggestion = "Set `[solver] min-release-age` (days) in poetry.toml (Poetry 2.4.0+).";
+      } else if (surface.manager === "uv") {
+        gate = uvGateSeconds(surface);
+        where =
+          configOf(surface, "pyproject.toml")?.path ??
+          configOf(surface, "uv.toml")?.path ??
+          surface.manifests[0]?.path;
+        suggestion = 'Set `exclude-newer` under [tool.uv] (e.g. "7 days"), uv 0.9.17+.';
+      } else {
+        continue; // pip/pip-tools have no native gate (CLI flags only)
+      }
+
+      if (gate === undefined) {
+        findings.push({
+          message: `No minimum release-age gate is configured for ${surface.manager}.`,
+          filePath: where,
+          suggestion,
+        });
+      } else if (gate !== "present" && threshold > 0 && gate < threshold) {
+        findings.push({
+          message: `Release-age gate (${gate}s) is below the required ${threshold}s.`,
+          filePath: where,
+          suggestion,
+        });
+      }
+    }
+    return findings;
+  },
+};
+
 export const pythonRules: Rule[] = [
   lockfileRequired,
   requirementsPinned,
   requireHashes,
   noUnpinnedVcsRequirement,
+  releaseAgeGate,
   poetryLockfileRequired,
   uvLockedInCi,
 ];

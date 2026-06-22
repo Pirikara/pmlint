@@ -48,6 +48,9 @@ const appStrict: RuleSeverities = {
   "js/package-manager-pinned": "error",
   "js/release-age-gate": "warn",
   "js/save-exact-configured": "warn",
+  // Release-age gate for the other ecosystems that now support it natively.
+  "ruby/release-age-gate": "warn",
+  "python/release-age-gate": "warn",
   "registry/no-insecure-registry": "error",
   // Require third-party actions to be pinned to an immutable commit SHA.
   "actions/no-unpinned-uses": "warn",

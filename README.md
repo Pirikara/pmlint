@@ -97,6 +97,11 @@ Set `ci.failOnWarnings: true` to fail on warnings too.
 - Missing/short Dependabot `cooldown` (delays adopting freshly published versions;
   minimum `default-days` is configurable via `dependabot.minCooldownDays`, default 7).
 - Plaintext registry tokens committed to the repo, and insecure registries.
+- Missing/short package-manager **release-age gate** (install cooldown) where the
+  manager supports it natively: npm (`min-release-age`), pnpm/yarn/bun, Bundler
+  (`cooldown`), Poetry (`solver.min-release-age`), uv (`exclude-newer`). On in
+  `app-strict`. Managers without a native gate (Go, Composer, Cargo, …) are not
+  flagged.
 
 ## Autofix
 

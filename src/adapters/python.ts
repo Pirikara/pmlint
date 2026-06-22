@@ -113,6 +113,8 @@ function buildSurface(
       manifests.push({ path: file, kind: "constraints.txt", raw: text });
     } else if (base === "pip.conf" || base === "pip.ini") {
       configs.push({ path: file, kind: base, raw: text });
+    } else if (base === "poetry.toml" || base === "uv.toml") {
+      configs.push({ path: file, kind: base, raw: text });
     }
   }
 

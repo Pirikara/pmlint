@@ -1,4 +1,5 @@
 import type { PackageSurface } from "../model/types.js";
+import { bundleConfigValue, configOf, daysToSeconds, type GateValue } from "./release-age.js";
 import type { Finding, Rule, RuleContext } from "./types.js";
 
 function rubySurfaces(ctx: RuleContext): PackageSurface[] {
@@ -84,9 +85,55 @@ export const noUnboundedGemVersion: Rule = {
   },
 };
 
+/**
+ * Bundler 4.0.13+ cooldown: `BUNDLE_COOLDOWN` (days) in .bundle/config, or
+ * `cooldown:` on a `source` in the Gemfile. Normalized to seconds.
+ */
+function bundlerCooldownSeconds(surface: PackageSurface): GateValue {
+  const bundleConfig = configOf(surface, ".bundle/config");
+  if (bundleConfig && typeof bundleConfig.raw === "string") {
+    const days = bundleConfigValue(bundleConfig.raw, "BUNDLE_COOLDOWN");
+    if (days !== undefined) return daysToSeconds(days);
+  }
+  // Gemfile per-source: `source "...", cooldown: 7`.
+  for (const manifest of surface.manifests) {
+    if (manifest.kind === "Gemfile" && typeof manifest.raw === "string") {
+      const m = /cooldown:\s*(\d+)/.exec(manifest.raw);
+      if (m) return daysToSeconds(Number(m[1]));
+    }
+  }
+  return undefined;
+}
+
+export const releaseAgeGate: Rule = {
+  id: "ruby/release-age-gate",
+  check(ctx) {
+    const findings: Finding[] = [];
+    const threshold = ctx.config.options.minReleaseAgeSeconds;
+    for (const surface of rubySurfaces(ctx)) {
+      const gate = bundlerCooldownSeconds(surface);
+      if (gate === undefined) {
+        findings.push({
+          message: "No Bundler cooldown is configured.",
+          filePath: configOf(surface, ".bundle/config")?.path ?? surface.manifests[0]?.path,
+          suggestion: "Set a cooldown (days), e.g. `bundle config set cooldown 7` (Bundler 4.0.13+).",
+        });
+      } else if (gate !== "present" && threshold > 0 && gate < threshold) {
+        findings.push({
+          message: `Bundler cooldown (${gate}s) is below the required ${threshold}s.`,
+          filePath: configOf(surface, ".bundle/config")?.path ?? surface.manifests[0]?.path,
+          suggestion: "Raise the Bundler cooldown.",
+        });
+      }
+    }
+    return findings;
+  },
+};
+
 export const rubyRules: Rule[] = [
   gemfileLockRequired,
   frozenInstallInCi,
   noUnpinnedGitSource,
   noUnboundedGemVersion,
+  releaseAgeGate,
 ];

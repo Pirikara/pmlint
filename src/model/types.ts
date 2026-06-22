@@ -89,7 +89,9 @@ export type PackageManagerConfigKind =
   | ".bundle/config"
   | "pyproject.toml"
   | "pip.conf"
-  | "pip.ini";
+  | "pip.ini"
+  | "poetry.toml"
+  | "uv.toml";
 
 export type DependencyKind =
   | "dependency"

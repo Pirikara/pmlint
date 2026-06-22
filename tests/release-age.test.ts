@@ -2,18 +2,23 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { resolveConfig } from "../src/config/load.js";
 import { lint, type LintResult } from "../src/core/engine.js";
+import { parseExcludeNewer } from "../src/rules/release-age.js";
 
 function lintFixture(name: string, threshold = 0): LintResult {
   const root = fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
   const config = resolveConfig({
-    rules: { "js/release-age-gate": "warn" },
+    rules: {
+      "js/release-age-gate": "warn",
+      "ruby/release-age-gate": "warn",
+      "python/release-age-gate": "warn",
+    },
     minReleaseAgeSeconds: threshold,
   });
   return lint(root, config);
 }
 
 function gate(result: LintResult) {
-  return result.diagnostics.find((d) => d.ruleId === "js/release-age-gate");
+  return result.diagnostics.find((d) => d.ruleId.endsWith("/release-age-gate"));
 }
 
 describe("js/release-age-gate (npm)", () => {
@@ -44,5 +49,54 @@ describe("js/release-age-gate (npm)", () => {
     const g = gate(result);
     expect(g).toBeDefined();
     expect(g?.filePath?.endsWith(".npmrc")).toBe(true);
+  });
+});
+
+describe("parseExcludeNewer (uv)", () => {
+  it("parses friendly and ISO durations to seconds", () => {
+    expect(parseExcludeNewer("7 days")).toBe(7 * 86_400);
+    expect(parseExcludeNewer("1 week")).toBe(7 * 86_400);
+    expect(parseExcludeNewer("P7D")).toBe(7 * 86_400);
+    expect(parseExcludeNewer("24 hours")).toBe(24 * 3600);
+  });
+
+  it("treats an absolute timestamp as present-but-unmeasurable", () => {
+    expect(parseExcludeNewer("2006-12-02T02:07:43Z")).toBe("present");
+  });
+});
+
+describe("release-age-gate (ruby / python)", () => {
+  it("accepts a Bundler cooldown in .bundle/config", () => {
+    const result = lintFixture("ruby-cooldown-good", 7 * 86_400);
+    expect(gate(result)).toBeUndefined();
+  });
+
+  it("flags a Ruby project with no Bundler cooldown", () => {
+    const result = lintFixture("ruby-good");
+    const g = result.diagnostics.find((d) => d.ruleId === "ruby/release-age-gate");
+    expect(g).toBeDefined();
+    expect(g?.suggestion).toContain("cooldown");
+  });
+
+  it("accepts Poetry [solver] min-release-age in poetry.toml", () => {
+    const result = lintFixture("python-poetry-cooldown-good", 7 * 86_400);
+    expect(result.diagnostics.find((d) => d.ruleId === "python/release-age-gate")).toBeUndefined();
+  });
+
+  it("accepts uv exclude-newer = '7 days' in pyproject.toml", () => {
+    const result = lintFixture("python-uv-cooldown-good", 7 * 86_400);
+    expect(result.diagnostics.find((d) => d.ruleId === "python/release-age-gate")).toBeUndefined();
+  });
+
+  it("flags a uv project with no exclude-newer, pointing at pyproject.toml", () => {
+    const result = lintFixture("python-uv-ci-bad");
+    const g = result.diagnostics.find((d) => d.ruleId === "python/release-age-gate");
+    expect(g).toBeDefined();
+    expect(g?.filePath?.endsWith("pyproject.toml")).toBe(true);
+  });
+
+  it("does not flag pip projects (no native gate)", () => {
+    const result = lintFixture("python-pip-floating-bad");
+    expect(result.diagnostics.find((d) => d.ruleId === "python/release-age-gate")).toBeUndefined();
   });
 });

@@ -32,11 +32,13 @@ export const RULE_IDS = [
   "ruby/frozen-install-in-ci",
   "ruby/no-unpinned-git-source",
   "ruby/no-unbounded-gem-version",
+  "ruby/release-age-gate",
   // Python-specific
   "python/lockfile-required",
   "python/requirements-pinned",
   "python/require-hashes",
   "python/no-unpinned-vcs-requirement",
+  "python/release-age-gate",
   "poetry/lockfile-required",
   "uv/locked-in-ci",
 ] as const;

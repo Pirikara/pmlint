@@ -6,7 +6,8 @@ export const DEFAULT_IGNORED_DIRS = [
   ".git",
   "node_modules",
   "vendor/bundle",
-  ".bundle",
+  // NB: do not ignore ".bundle" — it holds Bundler's `config` (frozen/cooldown
+  // settings) that pmlint needs to read. Vendored gems live in vendor/bundle.
   ".venv",
   "venv",
   "__pycache__",
@@ -45,6 +46,8 @@ const FILE_PATTERNS = [
   "**/pylock.toml",
   "**/pip.conf",
   "**/pip.ini",
+  "**/poetry.toml",
+  "**/uv.toml",
   // Go
   "**/go.mod",
   "**/go.sum",
