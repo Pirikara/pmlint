@@ -2,6 +2,7 @@
 import { cac } from "cac";
 import { runCheck, runExplain, type OutputFormat } from "./cli/check.js";
 import { runInit } from "./cli/init.js";
+import { writeReport } from "./cli/output.js";
 import { runScan } from "./cli/scan.js";
 import { VERSION } from "./version.js";
 
@@ -16,8 +17,10 @@ function main(argv: string[]): void {
     .option("--fix-dry-run", "Print the fix plan without writing anything")
     .option("--fix-destructive", "Allow destructive fixes (e.g. deleting a foreign lockfile)")
     .option("--format <format>", "Output format: stylish | json", { default: "stylish" })
+    .option("--output <path>", "Write the report to a file instead of stdout")
     .option("--no-color", "Disable colored output")
     .action((target: string | undefined, options: Record<string, unknown>) => {
+      const output = options.output as string | undefined;
       const outcome = runCheck({
         target,
         config: options.config as string | undefined,
@@ -26,9 +29,9 @@ function main(argv: string[]): void {
         fixDryRun: options.fixDryRun === true,
         fixDestructive: options.fixDestructive === true,
         format: options.format as OutputFormat,
-        color: process.stdout.isTTY && options.color !== false,
+        color: !output && process.stdout.isTTY && options.color !== false,
       });
-      emit(outcome);
+      emit(outcome, output);
     });
 
   cli
@@ -51,6 +54,7 @@ function main(argv: string[]): void {
     .option("--config <path>", "Path to a central pmlint policy (authoritative)")
     .option("--no-repo-config", "Ignore each repo's own pmlint.yml (audit mode)")
     .option("--format <format>", "Output format: stylish | json", { default: "stylish" })
+    .option("--output <path>", "Write the report to a file instead of stdout")
     .option("--keep-clones", "Keep cloned repositories instead of deleting them")
     .action((targets: string[] | undefined, options: Record<string, unknown>) => {
       const outcome = runScan({
@@ -62,7 +66,7 @@ function main(argv: string[]): void {
         format: options.format as OutputFormat,
         keepClones: options.keepClones === true,
       });
-      emit(outcome);
+      emit(outcome, options.output as string | undefined);
     });
 
   cli
@@ -104,7 +108,25 @@ function hasMetaFlag(argv: string[]): boolean {
   return argv.some((a) => a === "-h" || a === "--help" || a === "-v" || a === "--version");
 }
 
-function emit(outcome: { stdout: string; stderr?: string; exitCode: number }): void {
+function emit(
+  outcome: { stdout: string; stderr?: string; exitCode: number },
+  outputPath?: string,
+): void {
+  // When --output is given, write the report to the file and keep stdout for a
+  // short confirmation (errors still go to stderr, exit code unchanged).
+  if (outputPath && outcome.stdout && !outcome.stderr) {
+    try {
+      const abs = writeReport(outputPath, outcome.stdout);
+      process.stdout.write(`Wrote report to ${abs}\n`);
+    } catch (err) {
+      process.stderr.write(`pmlint: could not write ${outputPath}: ${(err as Error).message}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    process.exitCode = outcome.exitCode;
+    return;
+  }
+
   if (outcome.stdout) {
     process.stdout.write(outcome.stdout.endsWith("\n") ? outcome.stdout : `${outcome.stdout}\n`);
   }

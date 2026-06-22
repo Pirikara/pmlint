@@ -62,10 +62,15 @@ pmlint check .                  # lint the current repository
 pmlint check ./packages/api     # lint a sub-path
 pmlint check . --format json    # machine-readable output
 pmlint check . --config pmlint.yml
+pmlint check . --format json --output report.json   # write the report to a file
 pmlint explain .                # show detected surfaces, no pass/fail
 pmlint init                     # write a starter pmlint.yml
 pmlint scan ./a ./b             # scan many repos, aggregate one report
 ```
+
+Both `check` and `scan` print to stdout by default. Pass `--output <path>` to
+write the report to a file instead (a short confirmation is printed; the exit
+code is unchanged). Colors are disabled automatically when writing to a file.
 
 ### Exit codes
 
@@ -187,7 +192,7 @@ pmlint scan ./service-a ./service-b --config ./org-policy.yml
 pmlint scan owner/repo https://github.com/owner/other --no-repo-config
 
 # A whole GitHub org (enumerated via the gh CLI), JSON for a dashboard:
-pmlint scan --org my-org --config ./org-policy.yml --format json
+pmlint scan --org my-org --config ./org-policy.yml --format json --output fleet.json
 ```
 
 The static engine stays offline and deterministic; only the `scan` sources
