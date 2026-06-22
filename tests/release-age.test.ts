@@ -1,5 +1,8 @@
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { resolveConfig } from "../src/config/load.js";
 import { lint, type LintResult } from "../src/core/engine.js";
 import { parseExcludeNewer } from "../src/rules/release-age.js";
@@ -98,5 +101,67 @@ describe("release-age-gate (ruby / python)", () => {
   it("does not flag pip projects (no native gate)", () => {
     const result = lintFixture("python-pip-floating-bad");
     expect(result.diagnostics.find((d) => d.ruleId === "python/release-age-gate")).toBeUndefined();
+  });
+});
+
+describe("release-age-gate alternate config sources (OR)", () => {
+  const dirs: string[] = [];
+  afterEach(() => {
+    for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
+  });
+  function scratch(files: Record<string, string>): string {
+    const d = mkdtempSync(path.join(tmpdir(), "pmlint-or-"));
+    dirs.push(d);
+    for (const [p, c] of Object.entries(files)) {
+      const fp = path.join(d, p);
+      mkdirSync(path.dirname(fp), { recursive: true });
+      writeFileSync(fp, c);
+    }
+    return d;
+  }
+  const cfg = resolveConfig({
+    rules: {
+      "ruby/release-age-gate": "warn",
+      "python/release-age-gate": "warn",
+      "js/release-age-gate": "warn",
+    },
+    minReleaseAgeSeconds: 604_800,
+  });
+  const fired = (root: string) =>
+    lint(root, cfg).diagnostics.some((d) => d.ruleId.endsWith("/release-age-gate"));
+
+  it("Bundler: a Gemfile cooldown alone satisfies the gate", () => {
+    expect(
+      fired(
+        scratch({
+          Gemfile: 'source "https://rubygems.org", cooldown: 7\ngem "rails", "~> 7.1"\n',
+          "Gemfile.lock": "BUNDLED WITH\n   4.0.13\n",
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("pnpm: a .npmrc minimum-release-age alone satisfies the gate", () => {
+    expect(
+      fired(
+        scratch({
+          "package.json": JSON.stringify({ name: "x", packageManager: "pnpm@10.16.1" }),
+          "pnpm-lock.yaml": 'lockfileVersion: "9.0"\n',
+          ".npmrc": "minimum-release-age=10080\n",
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("uv: a uv.toml exclude-newer alone satisfies the gate", () => {
+    expect(
+      fired(
+        scratch({
+          "pyproject.toml": '[project]\nname="x"\nversion="0.1.0"\ndependencies=[]\n[tool.uv]\n',
+          "uv.lock": "version = 1\n",
+          "uv.toml": 'exclude-newer = "7 days"\n',
+        }),
+      ),
+    ).toBe(false);
   });
 });
