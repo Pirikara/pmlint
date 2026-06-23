@@ -21,7 +21,7 @@ export type ResolveOptions = {
   limit?: number;
   /** Keep cloned directories instead of cleaning them up. */
   keepClones?: boolean;
-  /** Per-repo clone timeout in ms (default 120000). A hung clone fails fast. */
+  /** Per-repo clone timeout in ms (default 300000 = 5 min). A hung clone fails fast. */
   cloneTimeoutMs?: number;
   /** Progress callback (clone/resolve phase). */
   onProgress?: (p: ResolveProgress) => void;
@@ -138,8 +138,9 @@ export function listOrgRepos(org: string, limit = 0): string[] {
   }
 }
 
-/** Default per-repo clone timeout (ms). A hung clone is marked failed, not stuck. */
-const CLONE_TIMEOUT_MS = 120_000;
+/** Default per-repo clone timeout (ms). A hung clone is marked failed, not stuck.
+ *  5 minutes: large repos can be slow even with a shallow clone. */
+const CLONE_TIMEOUT_MS = 300_000;
 
 /**
  * Environment that makes git/gh non-interactive, so a repo we can't access

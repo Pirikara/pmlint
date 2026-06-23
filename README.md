@@ -220,7 +220,7 @@ stays quiet when piped. Use `--no-progress` to disable it.
 
 Clones run non-interactively (no credential prompts) with a per-repo timeout, so
 a single unreachable or huge repo is marked **failed** and the scan keeps going
-instead of hanging. Tune it with `--clone-timeout <seconds>` (default 120).
+instead of hanging. Tune it with `--clone-timeout <seconds>` (default 300).
 
 ### Example configs
 
