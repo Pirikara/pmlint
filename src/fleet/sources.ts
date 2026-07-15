@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, type ExecFileSyncOptions } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -165,10 +165,12 @@ function cloneSpec(spec: string, timeoutMs = CLONE_TIMEOUT_MS): ResolvedRepo & {
     }
   };
   const preferGh = hasCommand("gh") && /^[\w.-]+\/[\w.-]+$/.test(spec);
-  const opts = {
-    stdio: "ignore" as const,
+  // Capture stderr so a failure reports WHY (auth, not found, rate limit, ...)
+  // instead of a bare "Command failed".
+  const opts: ExecFileSyncOptions = {
+    stdio: ["ignore", "ignore", "pipe"],
     timeout: timeoutMs,
-    killSignal: "SIGKILL" as const,
+    killSignal: "SIGKILL",
     env: NON_INTERACTIVE_ENV,
   };
   try {
@@ -180,13 +182,30 @@ function cloneSpec(spec: string, timeoutMs = CLONE_TIMEOUT_MS): ResolvedRepo & {
     return { target: spec, root: dir, cleanup };
   } catch (err) {
     cleanup();
-    const e = err as NodeJS.ErrnoException & { signal?: string };
-    const reason =
-      e.signal === "SIGKILL" || e.code === "ETIMEDOUT"
-        ? `clone timed out after ${Math.round(timeoutMs / 1000)}s`
-        : `clone failed: ${e.message}`;
-    return { target: spec, root: dir, error: reason, cleanup: () => {} };
+    const e = err as NodeJS.ErrnoException & { signal?: string; stderr?: Buffer | string };
+    if (e.signal === "SIGKILL" || e.code === "ETIMEDOUT") {
+      return {
+        target: spec,
+        root: dir,
+        error: `clone timed out after ${Math.round(timeoutMs / 1000)}s`,
+        cleanup: () => {},
+      };
+    }
+    return { target: spec, root: dir, error: `clone failed: ${cloneErrorDetail(e)}`, cleanup: () => {} };
   }
+}
+
+/** The most useful line(s) of a failed clone's stderr, falling back to the message. */
+function cloneErrorDetail(e: { message: string; stderr?: Buffer | string }): string {
+  const stderr = (e.stderr ?? "").toString().trim();
+  if (!stderr) {
+    return e.message;
+  }
+  const lines = stderr
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l !== "" && !/^Cloning into/.test(l));
+  return lines.slice(-2).join(" | ") || e.message;
 }
 
 /** Resolve all targets (plus any org enumeration) into local directories. */
