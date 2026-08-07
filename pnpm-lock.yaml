@@ -18,8 +18,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
       semver:
-        specifier: ^7.6.3
-        version: 7.8.4
+        specifier: ^7.8.5
+        version: 7.8.5
       smol-toml:
         specifier: ^1.7.0
         version: 1.7.0
@@ -769,8 +769,8 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
-  semver@7.8.4:
-    resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
+  semver@7.8.5:
+    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -1415,7 +1415,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   merge2@1.4.1: {}
 
@@ -1483,7 +1483,7 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  semver@7.8.4: {}
+  semver@7.8.5: {}
 
   siginfo@2.0.0: {}
 
